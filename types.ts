@@ -49,6 +49,14 @@ export interface FLACCScores {
   consolability: number;
 }
 
+export interface CHIPPScores {
+  cry: number;
+  facial: number;
+  torsoPosture: number;
+  legPosture: number;
+  restlessness: number;
+}
+
 export interface BradenScores {
   sensory: number;
   moisture: number;
