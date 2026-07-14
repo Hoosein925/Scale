@@ -4,7 +4,7 @@ import React from 'react';
 interface Props {
   title: string;
   toolUsed: string;
-  score: number;
+  score: number | string;
   interpretation: string;
   color: string;
   icon: string;
