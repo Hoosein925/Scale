@@ -1,7 +1,8 @@
 
 export enum PatientCategory {
   ADULT = 'ADULT',
-  PEDIATRIC = 'PEDIATRIC'
+  PEDIATRIC = 'PEDIATRIC',
+  NEONATE = 'NEONATE'
 }
 
 export enum PatientStatus {
@@ -29,7 +30,7 @@ export interface AssessmentResult {
   severity?: PainSeverity;
   interpretation?: string;
   recommendations?: string[];
-  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'Morse' | 'HumptyDumpty' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS';
+  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'BradenQ' | 'NSRAS' | 'Morse' | 'HumptyDumpty' | 'NeonatalFall' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS' | 'PediatricGCS' | 'NIPS' | 'CRIES' | 'PIPP';
   timestamp: Date;
 }
 
@@ -66,6 +67,16 @@ export interface BradenScores {
   friction: number;
 }
 
+export interface BradenQScores {
+  sensory: number;
+  moisture: number;
+  activity: number;
+  mobility: number;
+  nutrition: number;
+  friction: number;
+  perfusion: number;
+}
+
 export interface GCSScores {
   eyes: number;
   verbal: number;
@@ -87,4 +98,10 @@ export interface FOURScores {
   motor: number;
   brainstem: number;
   respiration: number;
+}
+
+export interface PediatricGCSScores {
+  eyes: number;
+  verbal: number;
+  motor: number;
 }

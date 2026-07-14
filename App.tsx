@@ -4,6 +4,7 @@ import { PatientStatus, AssessmentResult, PatientCategory, PediatricAgeGroup } f
 import Header from './components/Header';
 import PainAssessment from './components/PainAssessment';
 import PediatricAssessment from './components/PediatricAssessment';
+import NeonatalAssessment from './components/NeonatalAssessment';
 import ManagementPlan from './components/ManagementPlan';
 import Footer from './components/Footer';
 import PressureUlcerAssessment from './components/PressureUlcerAssessment';
@@ -15,6 +16,9 @@ import BMICalculator from './components/BMICalculator';
 import ICUAssessment from './components/ICUAssessment';
 import ModuleHeader from './components/common/ModuleHeader';
 import NIHSSAssessment from './components/NIHSSAssessment';
+import AnthropometricEstimation from './components/AnthropometricEstimation';
+import BloodGasAnalysis from './components/BloodGasAnalysis';
+import WeaningAssessment from './components/WeaningAssessment';
 
 const App: React.FC = () => {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
@@ -38,10 +42,12 @@ const App: React.FC = () => {
   
   const handleBackFromAssessment = () => {
     setAssessment(null);
-    if(category === PatientCategory.ADULT) {
+    if (category === PatientCategory.ADULT) {
         setPatientStatus(null);
-    } else {
+    } else if (category === PatientCategory.PEDIATRIC) {
         setPediatricAge(null);
+    } else {
+        setCategory(null);
     }
   };
 
@@ -65,6 +71,12 @@ const App: React.FC = () => {
         return <BMICalculator onBack={handleBackToMenu} onHome={reset} />;
       case 'ICU':
         return <ICUAssessment onBack={handleBackToMenu} onHome={reset} />;
+      case 'ANTHRO':
+        return <AnthropometricEstimation onBack={handleBackToMenu} onHome={reset} />;
+      case 'ABG':
+        return <BloodGasAnalysis onBack={handleBackToMenu} onHome={reset} />;
+      case 'WEANING':
+        return <WeaningAssessment onBack={handleBackToMenu} onHome={reset} />;
       default:
         return null;
     }
@@ -73,9 +85,9 @@ const App: React.FC = () => {
   const renderPainModule = () => (
     <>
       {!category ? (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in">
             <ModuleHeader onBack={() => setSelectedModule(null)} onHome={reset} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               <MainCard 
                 title="پروتکل بزرگسالان"
                 subtitle="Adult Protocols"
@@ -84,12 +96,19 @@ const App: React.FC = () => {
                 icon="🧑"
               />
               <MainCard 
+                title="نوزادان بستری (زیر ۱ ماه)"
+                subtitle="Neonatal (0 - 1mo)"
+                description="بر اساس دستورالعمل ابلاغی مدیریت درد نوزادان شامل مقیاس‌های NIPS، CRIES و مراقبت‌های غیردارویی."
+                onClick={() => setCategory(PatientCategory.NEONATE)}
+                icon="🚼"
+                highlight
+              />
+              <MainCard 
                 title="شیرخواران و کودکان"
                 subtitle="Pediatric (1mo - 18yr)"
                 description="بر اساس ابلاغیه جدید زمستان ۱۴۰۳ شامل مقیاس‌های FLACC، CHIPPS و Wong-Baker."
                 onClick={() => setCategory(PatientCategory.PEDIATRIC)}
                 icon="👶"
-                highlight
               />
             </div>
         </div>
@@ -106,25 +125,31 @@ const App: React.FC = () => {
         <div className="space-y-12">
            <ModuleHeader onBack={() => setCategory(null)} onHome={reset} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatusCard title="۱ ماه تا ۴ سال" subtitle="FLACC Scale" description="ارزیابی رفتاری (چهره، پا، گریه)." onClick={() => setPediatricAge(PediatricAgeGroup.INFANT_TODDLER)} icon="🍼" />
+              <StatusCard title="۱ ماه تا ۴ سال" subtitle="FLACC Scale" description="ارزیابی رفتاری (چهره، پا، گریه)." onClick={() => setPediatricAge(PediatricAgeGroup.INFANT_TODDLER)} icon="🤱" />
               <StatusCard title="۳ تا ۷ سال" subtitle="Wong-Baker" description="استفاده از مقیاس چهره‌های کارتونی." onClick={() => setPediatricAge(PediatricAgeGroup.PRE_SCHOOL)} icon="🎨" />
               <StatusCard title="بالای ۷ سال" subtitle="NRS Scale" description="ارزیابی عددی مستقیم (۰ تا ۱۰)." onClick={() => setPediatricAge(PediatricAgeGroup.SCHOOL_ADOLESCENT)} icon="🎒" />
               <StatusCard title="بعد از عمل (تا ۷ سال)" subtitle="CHIPPS Scale" description="پروتکل اختصاصی ریکاوری و بخش." onClick={() => setPediatricAge(PediatricAgeGroup.POST_OP)} icon="🩹" />
           </div>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in">
             <ModuleHeader onBack={handleBackFromAssessment} onHome={reset} />
             <div className="premium-card p-6 flex flex-col md:flex-row items-center justify-center gap-6 border-indigo-500/20">
              <div className="bg-indigo-950 px-8 py-4 rounded-2xl border border-indigo-500/30">
               <span className="text-lg font-black text-indigo-100 uppercase">
-                {category === PatientCategory.ADULT ? 'پروتکل بزرگسال' : 'پروتکل کودکان و شیرخواران'}
+                {category === PatientCategory.ADULT 
+                  ? 'پروتکل بزرگسال' 
+                  : category === PatientCategory.NEONATE 
+                    ? 'پروتکل نوزادان بستری' 
+                    : 'پروتکل کودکان و شیرخواران'}
               </span>
             </div>
           </div>
 
           {category === PatientCategory.ADULT ? (
             <PainAssessment status={patientStatus!} onAssess={setAssessment} />
+          ) : category === PatientCategory.NEONATE ? (
+            <NeonatalAssessment onAssess={setAssessment} onBack={handleBackFromAssessment} onHome={reset} />
           ) : (
             <PediatricAssessment ageGroup={pediatricAge!} onAssess={setAssessment} />
           )}
@@ -158,8 +183,11 @@ const App: React.FC = () => {
               <ModuleCard title="مقیاس سکته NIHSS" icon="🕰️" onClick={() => setSelectedModule('NIHSS')} enabled={true} />
               <ModuleCard title="ریسک ترومبوآمبولی" icon="🩸" onClick={() => setSelectedModule('THROMBO')} enabled={true} />
               <ModuleCard title="محاسبه BMI" icon="📏" onClick={() => setSelectedModule('BMI')} enabled={true} />
+              <ModuleCard title="تخمین قد و وزن (قد زانو)" icon="📐" onClick={() => setSelectedModule('ANTHRO')} enabled={true} />
+              <ModuleCard title="تفسیر گازهای خونی (ABG/VBG)" icon="🧪" onClick={() => setSelectedModule('ABG')} enabled={true} />
               <ModuleCard title="ریسک خودکشی" icon="❤️‍🩹" onClick={() => setSelectedModule('SUICIDE')} enabled={true} />
               <ModuleCard title="ابزارهای ICU" icon="❤️‍🔥" onClick={() => setSelectedModule('ICU')} enabled={true} />
+              <ModuleCard title="جداسازی از ونتیلاتور" icon="🫁" onClick={() => setSelectedModule('WEANING')} enabled={true} />
             </div>
           </div>
         ) : (
