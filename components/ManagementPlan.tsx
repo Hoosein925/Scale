@@ -9,7 +9,39 @@ interface Props {
 
 const ManagementPlan: React.FC<Props> = ({ assessment, category }) => {
   const getPlan = () => {
-    if (category === PatientCategory.PEDIATRIC) {
+    if (category === PatientCategory.NEONATE) {
+      switch (assessment.severity) {
+        case PainSeverity.NONE:
+          return {
+            meds: ["نیاز به مداخله دارویی ندارد"],
+            actions: ["ثبت امتیاز درد در فرم پایش نوزاد", "حفاظت از محیط استراحت نوزاد و پایش همودینامیک روتین", "خوشه‌بندی خدمات (Clustering Care) جهت تقلیل تحریک حسی"],
+            nonPharm: ["کاهش شدت نور مستقیم انکوباتور", "تنظیم صدای زنگ دستگاه‌ها و صحبت با تن ملایم"],
+            color: "bg-emerald-600", icon: "✅"
+          };
+        case PainSeverity.MILD:
+          return {
+            meds: ["در صورت لزوم، استامینوفن خوراکی یا شیاف (10-15 mg/kg) هر ۶ الی ۸ ساعت (حداکثر 40 mg/kg/day در نوزاد ترم و 30 mg/kg/day در نوزاد نارس)"],
+            actions: ["ارزیابی مجدد درد پس از ۳۰ تا ۶۰ دقیقه", "ثبت مستندات در برگه پرستاری", "کنترل علائم حیاتی نوزاد"],
+            nonPharm: ["تجویز ساکارز ۲۴٪ یا آب قند ۲ دقیقه قبل از هر پروسجر", "مکیدن غیرمغذی (پستانک)", "مراقبت آغوشی مادر (KMC)", "قنداق کردن شل یا پوزیشن فشرده حمایتی (Swaddling)"],
+            color: "bg-amber-500", icon: "🟡"
+          };
+        case PainSeverity.MODERATE:
+          return {
+            meds: ["استامینوفن خوراکی/شیاف با دوز استاندارد", "گزارش وضعیت به پزشک مقیم جهت پایش و اخذ دستور دارویی", "در صورت لزوم دوز مناسب اپیوئید با پایش مانیتورینگ"],
+            actions: ["پایش مستمر پالس‌اکسیمتری و مانیتورینگ قلبی‌تنفسی", "ارزیابی مجدد درد هر ۱ ساعت تا تسکین درد"],
+            nonPharm: ["تجویز ساکارز ۲۴٪ به همراه پستانک جهت مهار مکانیکی درد", "تماس پوست به پوست مادر و نوزاد (KMC)", "اصلاح کامل محرک‌های محیطی اتاق"],
+            color: "bg-orange-600", icon: "🟠"
+          };
+        case PainSeverity.SEVERE:
+          return {
+            meds: ["انفوزیون فنتانیل (0.5-2 mcg/kg/hour)", "یا مورفین وریدی (0.05-0.1 mg/kg) آهسته هر ۴ تا ۶ ساعت", "آماده‌سازی داروی آنتی‌دوت نالوکسان و ترالی اورژانس نوزادان"],
+            actions: ["پایش مداوم و تهاجمی هوشیاری، تعداد تنفس و الگوی دمی نوزاد", "پایش مستمر مانیتور قلبی‌ریوی", "ارزیابی مجدد درد نوزاد هر ۳۰ دقیقه تا حصول تسکین"],
+            nonPharm: ["کاهش پیشرفته محرک‌های محیطی", "تماس مستمر مادری به همراه مکیدن غیرمغذی و ساکارز"],
+            color: "bg-rose-700", icon: "🚨"
+          };
+        default: return { meds: [], actions: [], nonPharm: [], color: "bg-indigo-900", icon: "❓" };
+      }
+    } else if (category === PatientCategory.PEDIATRIC) {
       switch (assessment.severity) {
         case PainSeverity.NONE:
           return {
@@ -66,7 +98,7 @@ const ManagementPlan: React.FC<Props> = ({ assessment, category }) => {
           <div className="text-center lg:text-right">
             <h3 className="text-2xl font-black text-white leading-tight">درمان انتخابی بر اساس شدت درد</h3>
             <p className="text-white/70 text-xs font-bold mt-1 uppercase tracking-wide">
-              {category === PatientCategory.PEDIATRIC ? 'Pediatric Care Protocol' : 'Adult Care Protocol'}
+              {category === PatientCategory.NEONATE ? 'Neonatal Care Protocol' : category === PatientCategory.PEDIATRIC ? 'Pediatric Care Protocol' : 'Adult Care Protocol'}
             </p>
           </div>
         </div>
@@ -87,7 +119,7 @@ const ManagementPlan: React.FC<Props> = ({ assessment, category }) => {
               <PlanItem key={i} text={med} icon="💊" color="border-l-indigo-500" />
             ))}
           </div>
-          {category === PatientCategory.PEDIATRIC && plan.nonPharm && (
+          {(category === PatientCategory.PEDIATRIC || category === PatientCategory.NEONATE) && plan.nonPharm && (
              <>
                <SectionTitle color="bg-pink-500" text="روش‌های غیردارویی (پیوست ۱)" />
                <div className="grid gap-3">

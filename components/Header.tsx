@@ -39,13 +39,13 @@ const Header: React.FC = () => {
                 <h3 id="about-title" className="text-xl md:text-2xl font-black text-white">درباره سامانه</h3>
                 <button onClick={() => setIsAboutModalOpen(false)} aria-label="بستن" className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white text-xl">✕</button>
             </div>
-            <p className="text-slate-300 text-base md:text-lg leading-relaxed md:leading-loose text-justify font-medium">
-              این سامانه یک ابزار جامع و تخصصی برای پرستاران است که مجموعه‌ای از مقیاس‌ها و پروتکل‌های استاندارد ارزیابی بالینی را فراهم می‌کند. هدف از این برنامه، تسهیل فرآیندهای ارزیابی، افزایش دقت در تصمیم‌گیری‌های بالینی و ارتقاء کیفیت مراقبت از بیماران است. تمامی ابزارها بر اساس آخرین دستورالعمل‌ها و شیوه‌نامه‌های معتبر طراحی شده‌اند.
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed md:leading-loose text-justify font-medium space-y-2">
+              این سامانه یک ابزار جامع و تخصصی برای پرستاران است که مجموعه‌ای گستره و بی‌نظیر از مقیاس‌ها و پروتکل‌های استاندارد ارزیابی بالینی را فراهم می‌کند. در آخرین به‌روزرسانی برنامه (تیر ۱۴۰۵)، بخش فوق‌تخصصی مدیریت درد نوزادان بستری (شامل ابزارهای استاندارد NIPS و CRIES به همراه پکیج دستورالعمل‌های غیردارویی و دارویی معتبر) و نیز فرآیند ارزیابی آمادگی بیمار جهت جداسازی از ونتیلاتور (Weaning) به سامانه اضافه شده‌اند. این سیستم در مجموع شامل ۱۲ ابزار کاربردی و کلیدی از جمله ارزیابی درد، زخم فشاری، ریسک سقوط، سطح هوشیاری، مقیاس سکته NIHSS، ترومبوآمبولی، محاسبات شاخص توده بدنی (BMI)، تخمین قد و وزن از روی قد زانو، تحلیل گازهای خونی شریانی (ABG/VBG)، غربالگری خودکشی و ابزارهای بخش‌های ویژه (APACHE II, SOFA, RASS) است تا کارآمدی بالینی کادر درمان را به حداکثر برساند.
             </p>
             
             <div className="pt-6 md:pt-8 mt-6 md:mt-8 border-t border-white/10 text-center space-y-6">
               <p className="text-slate-400 font-bold text-sm md:text-base">
-                سازنده: حسین نصاری • سال 1404
+                سازنده: حسین نصاری • آخرین به‌روزرسانی: تیر ۱۴۰۵
               </p>
               <div className="flex flex-col items-center justify-center gap-4">
                 <a href="https://t.me/ho3in925" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 px-4 py-3 md:px-6 md:py-4 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 transition-colors w-full justify-center text-right">

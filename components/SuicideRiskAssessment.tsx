@@ -11,23 +11,23 @@ const getSadPersonsRecommendations = (score: number): string[] => {
   return [];
 };
 
+const sadPersonsCriteria = [
+  { name: 'sex', label: '(Sex) جنسیت: مرد', points: 1 },
+  { name: 'age', label: '(Age) سن: کمتر از ۲۰ یا بیشتر از ۴۴ سال', points: 1 },
+  { name: 'depression', label: '(Depression) افسردگی', points: 1 },
+  { name: 'previous_attempt', label: '(Previous attempt) سابقه اقدام به خودکشی', points: 1 },
+  { name: 'ethanol_abuse', label: '(Ethanol abuse) سوء مصرف الکل', points: 1 },
+  { name: 'rational_loss', label: '(Rational thinking loss) از دست دادن تفکر منطقی', points: 1 },
+  { name: 'social_support_lacking', label: '(Social Supports Lacking) عدم وجود پشتیبان اجتماعی', points: 1 },
+  { name: 'organized_plan', label: '(Organized Plan) طراحی نقشه سازمان‌یافته', points: 1 },
+  { name: 'no_spouse', label: '(No Spouse) مجرد، مطلقه، یا بیوه', points: 1 },
+  { name: 'sickness', label: '(Sickness) بیماری مزمن، ناتوان‌کننده یا شدید', points: 1 },
+];
+
 const SuicideRiskAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ onBack, onHome }) => {
   const [criteria, setCriteria] = useState<Record<string, boolean>>({});
   const [score, setScore] = useState(0);
   const [result, setResult] = useState<any>(null);
-
-  const sadPersonsCriteria = [
-    { name: 'sex', label: '(Sex) جنسیت: مرد', points: 1 },
-    { name: 'age', label: '(Age) سن: کمتر از ۲۰ یا بیشتر از ۴۴ سال', points: 1 },
-    { name: 'depression', label: '(Depression) افسردگی', points: 1 },
-    { name: 'previous_attempt', label: '(Previous attempt) سابقه اقدام به خودکشی', points: 1 },
-    { name: 'ethanol_abuse', label: '(Ethanol abuse) سوء مصرف الکل', points: 1 },
-    { name: 'rational_loss', label: '(Rational thinking loss) از دست دادن تفکر منطقی', points: 1 },
-    { name: 'social_support_lacking', label: '(Social Supports Lacking) عدم وجود پشتیبان اجتماعی', points: 1 },
-    { name: 'organized_plan', label: '(Organized Plan) طراحی نقشه سازمان‌یافته', points: 1 },
-    { name: 'no_spouse', label: '(No Spouse) مجرد، مطلقه، یا بیوه', points: 1 },
-    { name: 'sickness', label: '(Sickness) بیماری مزمن، ناتوان‌کننده یا شدید', points: 1 },
-  ];
 
   useEffect(() => {
     const totalScore = sadPersonsCriteria.reduce((total, item) => {

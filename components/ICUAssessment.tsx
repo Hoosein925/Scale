@@ -43,7 +43,7 @@ const RASSScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) => 
         }
 
         onResult({ score, interpretation: level.term, color, icon, recommendations });
-    }, [score, onResult]);
+    }, [score]);
 
     return (
         <div className="pt-8 space-y-4">
@@ -114,7 +114,12 @@ const SOFAScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) => 
         interpretationText = `امتیاز بالاتر نشان‌دهنده اختلال عملکرد ارگان شدیدتر است. افزایش ناگهانی امتیاز به میزان ۲ یا بیشتر می‌تواند نشانگر سپسیس باشد.`;
         
         onResult({ score: totalScore, interpretation: interpretationText, color: 'bg-indigo-700', icon: '🧬' });
-    }, [values, onResult]);
+    }, [
+        values.paO2, values.fio2, values.vent,
+        values.platelets, values.bilirubin,
+        values.map, values.vasopressor,
+        values.gcs, values.creatinine, values.urine
+    ]);
 
     const handleChange = (field: string, value: any) => {
         setValues((prev: any) => ({ ...prev, [field]: value }));
@@ -188,7 +193,10 @@ const APACHEIIScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult })
         const interpretation = "امتیاز بالاتر نشان‌دهنده شدت بیماری بیشتر و ریسک بالاتر مورتالیتی است.";
         
         onResult({ score: totalScore, interpretation, color: 'bg-rose-800', icon: '📈' });
-    }, [values, onResult]);
+    }, [
+        values.temp, values.map, values.hr, values.rr,
+        values.gcs, values.age, values.chronic
+    ]);
 
     const handleChange = (field: string, value: any) => {
         setValues((prev: any) => ({ ...prev, [field]: value }));

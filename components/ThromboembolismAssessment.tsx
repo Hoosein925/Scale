@@ -27,35 +27,35 @@ const getPteRecommendations = (riskLevel: string): string[] => {
     }
   };
 
+const wellsCriteriaDVT = [
+  { name: 'paralysis', label: 'جراحی، صدمه یا گچ در اندام تحتانی، پارزی یا پارالایزی', points: 1 },
+  { name: 'bedridden', label: 'بستری در تخت بیش از ۳ روز یا جراحی بزرگ در ۴ هفته قبل', points: 1 },
+  { name: 'tenderness', label: 'تندرنس در مسیر وریدهای پشت زانو یا ران', points: 1 },
+  { name: 'swelling', label: 'تورم یک عضو (کل اندام)', points: 1 },
+  { name: 'pitting_edema', label: 'ادم گوده‌گذار در اندام مبتلا', points: 1 },
+  { name: 'calf_swelling', label: 'تورم > ۳ سانتی‌متر یک پا نسبت به پای دیگر (در ۱۰ سانتی‌متری زیر زانو)', points: 1 },
+  { name: 'collateral_veins', label: 'تورم عروق محیطی که ناشی از واریس نباشد', points: 1 },
+  { name: 'previous_dvt', label: 'داشتن سابقه DVT قبلی', points: 1 },
+  { name: 'cancer', label: 'بدخیمی حاد یا درمان شده در ۶ ماه گذشته', points: 1 },
+  { name: 'alt_diagnosis', label: 'تشخیص جایگزین با احتمال بیشتری نسبت به DVT', points: -2 },
+];
+
+const wellsCriteriaPTE = [
+  { name: 'dvt_symptoms', label: 'وجود علائم بالینی DVT', points: 3 },
+  { name: 'no_alt_diagnosis', label: 'تشخیص دیگری کمتر از آمبولی محتمل است', points: 3 },
+  { name: 'heart_rate', label: 'ضربان قلب بالای ۱۰۰', points: 1.5 },
+  { name: 'immobilization', label: 'بی‌حرکتی ≥ ۳ روز یا جراحی در ۴ هفته اخیر', points: 1.5 },
+  { name: 'previous_vte', label: 'سابقه قبلی DVT یا آمبولی ریه', points: 1.5 },
+  { name: 'hemoptysis', label: 'خلط خونی (هموپتزی)', points: 1 },
+  { name: 'cancer_active', label: 'بدخیمی فعال (تحت درمان یا تسکینی)', points: 1 },
+];
+
 const ThromboembolismAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ onBack, onHome }) => {
   const [scale, setScale] = useState<'dvt' | 'pte'>('dvt');
   const [criteria, setCriteria] = useState<Record<string, boolean>>({});
   const [score, setScore] = useState(0);
   const [result, setResult] = useState<any>(null);
 
-  const wellsCriteriaDVT = [
-    { name: 'paralysis', label: 'جراحی، صدمه یا گچ در اندام تحتانی، پارزی یا پارالایزی', points: 1 },
-    { name: 'bedridden', label: 'بستری در تخت بیش از ۳ روز یا جراحی بزرگ در ۴ هفته قبل', points: 1 },
-    { name: 'tenderness', label: 'تندرنس در مسیر وریدهای پشت زانو یا ران', points: 1 },
-    { name: 'swelling', label: 'تورم یک عضو (کل اندام)', points: 1 },
-    { name: 'pitting_edema', label: 'ادم گوده‌گذار در اندام مبتلا', points: 1 },
-    { name: 'calf_swelling', label: 'تورم > ۳ سانتی‌متر یک پا نسبت به پای دیگر (در ۱۰ سانتی‌متری زیر زانو)', points: 1 },
-    { name: 'collateral_veins', label: 'تورم عروق محیطی که ناشی از واریس نباشد', points: 1 },
-    { name: 'previous_dvt', label: 'داشتن سابقه DVT قبلی', points: 1 },
-    { name: 'cancer', label: 'بدخیمی حاد یا درمان شده در ۶ ماه گذشته', points: 1 },
-    { name: 'alt_diagnosis', label: 'تشخیص جایگزین با احتمال بیشتری نسبت به DVT', points: -2 },
-  ];
-
-  const wellsCriteriaPTE = [
-    { name: 'dvt_symptoms', label: 'وجود علائم بالینی DVT', points: 3 },
-    { name: 'no_alt_diagnosis', label: 'تشخیص دیگری کمتر از آمبولی محتمل است', points: 3 },
-    { name: 'heart_rate', label: 'ضربان قلب بالای ۱۰۰', points: 1.5 },
-    { name: 'immobilization', label: 'بی‌حرکتی ≥ ۳ روز یا جراحی در ۴ هفته اخیر', points: 1.5 },
-    { name: 'previous_vte', label: 'سابقه قبلی DVT یا آمبولی ریه', points: 1.5 },
-    { name: 'hemoptysis', label: 'خلط خونی (هموپتزی)', points: 1 },
-    { name: 'cancer_active', label: 'بدخیمی فعال (تحت درمان یا تسکینی)', points: 1 },
-  ];
-  
   const currentCriteria = scale === 'dvt' ? wellsCriteriaDVT : wellsCriteriaPTE;
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const ThromboembolismAssessment: React.FC<{ onBack: () => void; onHome: () => vo
     }
     
     setResult({ interpretation, color, icon, recommendations });
-  }, [criteria, scale, currentCriteria]);
+  }, [criteria, scale]);
 
   const toggleCriterion = (name: string) => {
     setCriteria(prev => ({ ...prev, [name]: !prev[name] }));
