@@ -1,30 +1,39 @@
 {
-  "name": "سامانه جامع ارزیابی پرستاری",
-  "short_name": "ارزیابی پرستاری",
-  "description": "سامانه تخصصی ابزارهای ارزیابی بالینی و پروتکل‌های پرستاری",
+  "name": "Nursing guide",
+  "short_name": "Nursing guide",
+  "description": "ابزارهای ارزیابی بالینی، تشخیص و مداخلات پرستاری و محاسبات دارویی",
+  "lang": "fa",
+  "dir": "rtl",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#7ebbfd",
+  "theme_color": "#062a2e",
   "icons": [
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
