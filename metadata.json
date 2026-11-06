@@ -1,5 +1,5 @@
 {
-  "name": "سامانه جامع ارزیابی بالینی",
+  "name": "Nursing guide",
   "description": "مجموعه ابزارهای استاندارد ارزیابی پرستاری شامل مدیریت درد، زخم فشاری، ریسک سقوط و...",
   "requestFramePermissions": [
     "microphone"

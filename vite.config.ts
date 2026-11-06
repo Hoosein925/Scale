@@ -6,6 +6,5 @@ export default defineConfig({
   plugins: [react()],
   define: {
     // This makes the environment variable available in the client-side code
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
   }
 })

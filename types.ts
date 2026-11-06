@@ -15,14 +15,16 @@ export enum PediatricAgeGroup {
   INFANT_TODDLER = '1MO_4YR', // FLACC
   PRE_SCHOOL = '3YR_7YR',   // Wong-Baker
   SCHOOL_ADOLESCENT = '7YR_18YR', // NRS
-  POST_OP = 'POST_OP'        // CHIPPS
+  POST_OP = 'POST_OP',       // CHIPPS
+  NON_VERBAL = 'NON_VERBAL'  // FLACC برای کودک فاقد کلام (اینتوبه / CP / کوچک‌تر از ۳ سال)
 }
 
 export enum PainSeverity {
   NONE = 'NONE',
   MILD = 'MILD',
   MODERATE = 'MODERATE',
-  SEVERE = 'SEVERE'
+  SEVERE = 'SEVERE',
+  VERY_SEVERE = 'VERY_SEVERE'
 }
 
 export interface AssessmentResult {
@@ -30,7 +32,7 @@ export interface AssessmentResult {
   severity?: PainSeverity;
   interpretation?: string;
   recommendations?: string[];
-  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'BradenQ' | 'Glamorgan' | 'NSRAS' | 'Morse' | 'HumptyDumpty' | 'NeonatalFall' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS' | 'PediatricGCS' | 'NIPS' | 'CRIES' | 'PIPP';
+  toolUsed: 'VAS' | 'BPS' | 'FLACC' | 'WONG_BAKER' | 'CHIPPS' | 'NRS' | 'VITAL_SIGNS' | 'Braden' | 'BradenQ' | 'Glamorgan' | 'NSRAS' | 'Morse' | 'HumptyDumpty' | 'NeonatalFall' | 'GCS' | 'FOUR' | 'AVPU' | 'Wells' | 'SAD_PERSONS' | 'BMI' | 'RASS' | 'SOFA' | 'APACHE II' | 'PUSH' | 'NIHSS' | 'PediatricGCS' | 'NIPS' | 'CRIES' | 'PIPP' | 'MPAT' | 'FACES' | 'CAM-ICU';
   timestamp: Date;
 }
 
