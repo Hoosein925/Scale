@@ -440,14 +440,15 @@ const getPushInterpretationAndRecommendations = (score: number, areaScore: numbe
   return { interpretation, recommendations };
 };
 
+// score = نمرهٔ اصلی NSRAS (۶ تا ۲۴؛ نمرهٔ کمتر = خطر بیشتر)
 const getNSRASRecommendations = (score: number): string[] => {
-  if (score < 10) {
+  if (score >= 14) {
     return [
       "ادامه مراقبت‌های روتین پوستی نوزاد و پایش روزانه نواحی تحت فشار.",
       "تعویض روتین ملحفه و پوشک نوزاد (به طور منظم هر ۲۴ ساعت یا به هنگام نیاز).",
       "ارزیابی مجدد ریسک در صورت تغییر شرایط بالینی یا داروهای آرام‌بخش نوزاد."
     ];
-  } else if (score <= 20) {
+  } else if (score >= 10) {
     return [
       "پروتکل تغییر وضعیت نوزاد حداقل هر ۲ ساعت یکبار به صورت فوق‌العاده ملایم.",
       "استفاده از رینگ‌های ژله‌ای ظریف مخصوص نوزادان زیر سر به ویژه استخوان پس‌سری (Occiput) جهت به حداقل رساندن فشار مستقیم.",
@@ -477,25 +478,23 @@ const NSRASScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) =>
   });
 
   useEffect(() => {
-    const totalScore = scores.physical + scores.mental + scores.mobility + scores.activity + scores.nutrition + scores.moisture;
+    // گزینه‌های این فرم از ۱ (بهترین) تا ۴ (بدترین) کدگذاری شده‌اند؛ در NSRAS اصلی جهت برعکس است (۴ = کمترین خطر).
+    const rawSum = scores.physical + scores.mental + scores.mobility + scores.activity + scores.nutrition + scores.moisture;
+    const totalScore = 30 - rawSum; // نمرهٔ NSRAS اصلی: ۶ تا ۲۴، هرچه کمتر خطر بیشتر
     let interpretation = "", color = "", icon = "";
 
-    if (totalScore < 10) {
-      interpretation = "بدون خطر زخم فشاری (No Risk)";
+    if (totalScore >= 14) {
+      interpretation = "نوزاد در معرض خطر زخم فشاری نیست (نمرهٔ NSRAS > ۱۳)";
       color = "bg-emerald-600";
       icon = "✅";
-    } else if (totalScore <= 20) {
-      interpretation = "خطر بالا زخم فشاری (High Risk)";
+    } else if (totalScore >= 10) {
+      interpretation = "نوزاد در معرض خطر زخم فشاری است (نمرهٔ NSRAS ≤ ۱۳)";
       color = "bg-orange-600";
       icon = "🟠";
     } else {
-      interpretation = "خطر بسیار بالا زخم فشاری (Very High Risk)";
+      interpretation = "نوزاد در معرض خطر بالای زخم فشاری است (نمرهٔ NSRAS ≤ ۱۳ و بسیار پایین)";
       color = "bg-rose-700";
       icon = "🚨";
-    }
-
-    if (totalScore >= 13) {
-      interpretation += " - ⚠️ نوزاد در معرض خطر زخم فشاری (Sore) می‌باشد.";
     }
 
     const recommendations = getNSRASRecommendations(totalScore);
@@ -738,68 +737,68 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
             />
           </div>
 
-          <div className="border-t border-white/5 pt-12 space-y-8">
+          <div className="border-t border-[#c69d5b]/15 pt-12 space-y-8">
             <div className="text-center space-y-2">
               <span className="text-4xl">💡</span>
-              <h4 className="text-2xl font-black text-white">متدها و تکنیک‌های استاندارد پیشگیری از زخم فشاری</h4>
-              <p className="text-slate-400 text-sm max-w-2xl mx-auto">دستورالعمل‌های استاندارد بالینی و مراقبتی به منظور کاهش اصطکاک، فشار مستقیم و رطوبت پوست</p>
+              <h4 className="text-2xl font-black text-[#062a2e]">متدها و تکنیک‌های استاندارد پیشگیری از زخم فشاری</h4>
+              <p className="text-[#475569] text-sm max-w-2xl mx-auto font-medium">دستورالعمل‌های استاندارد بالینی و مراقبتی به منظور کاهش اصطکاک، فشار مستقیم و رطوبت پوست</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-right">
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🔄</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۱. پوزیشن‌دهی و تغییر وضعیت منظم</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Regular Repositioning</span>
+                    <h5 className="text-lg font-black text-[#096067]">۱. پوزیشن‌دهی و تغییر وضعیت منظم</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Regular Repositioning</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>تغییر موقعیت و پوزیشن بیمار در تخت حداقل هر ۲ ساعت و در ویلچر/صندلی هر ۱۵ دقیقه.</li>
                   <li><strong>تکنیک زاویه ۳۰ درجه:</strong> شیب‌دهی به بیمار به صورت پهلوی ۳۰ درجه (پرهیز از زاویه ۹۰ درجه مستقیم جهت کاهش حداکثری بار بر روی استخوان خاجی (ساکروم) و ران).</li>
                   <li>استفاده از ملافه‌های روان یا تجهیزات بالابرنده در زمان جابجایی به منظور جلوگیری از بروز نیروهای کششی و اصطکاکی بر روی پوست.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🛡️</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۲. کاهش موضعی فشار با ابزار محافظ</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Pressure-Relieving Surfaces</span>
+                    <h5 className="text-lg font-black text-[#096067]">۲. کاهش موضعی فشار با ابزار محافظ</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Pressure-Relieving Surfaces</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>استفاده مقتضی از تشک‌های مواج سلولی استاندارد برای بیماران بستری طولانی‌مدت.</li>
                   <li>بکارگیری رینگ‌های ژله‌ای، فوم یا پانسمان‌های فوم چند لایه سیلیکونی در نواحی مستعد (همچون پشت سر، پاشنه پا و ساکروم).</li>
                   <li>شناور یا آزاد نگه داشتن مچ و پاشنه پا نسبت به سطح تخت با قرار دادن بالش ملایم زیر ساق پا.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🧴</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۳. پایش و مراقبت پوستی روزانه</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Daily Skin Care & Moisture Management</span>
+                    <h5 className="text-lg font-black text-[#096067]">۳. پایش و مراقبت پوستی روزانه</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Daily Skin Care & Moisture Management</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>بررسی کامل پوست حداقل یک بار در روز با تمرکز دقیق بر روی تمام برجستگی‌های استخوانی مستعد زخم.</li>
                   <li>تمیز نگه‌داشتن فوری پوست پس از بی‌اختیاری ادرار یا مدفوع با پاک‌کننده‌های ملایم و استفاده از کرم‌های سدکننده (بریر مانند اکسید روی).</li>
                   <li><strong>هشدار بالینی:</strong> از ماساژ دادن برجستگی‌های استخوانی قرمز شده یا بافت‌های ملتهب به شدت پرهیز کنید زیرا ریسک تخریب بافت زیرپوستی را به شدت بالا می‌برد.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🍎</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۴. تغذیه تکمیلی و هیدراتاسیون</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Nutrition & Hydration Support</span>
+                    <h5 className="text-lg font-black text-[#096067]">۴. تغذیه تکمیلی و هیدراتاسیون</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Nutrition & Hydration Support</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>ارائه رژیم غذایی پرکالری، سرشار از پروتئین مرغوب، ویتامین‌های گروه C و روی (Zinc) جهت استحکام بافت پوست.</li>
                   <li>تأمین هیدراتاسیون کافی روزانه (به جز موارد منع مصرف بالینی) جهت جلوگیری از خشکی شدید و شکنندگی پوست.</li>
                   <li>پایش فعال سطح شاخص‌های بیوشیمیایی تغذیه از جمله سطح آلبومین تام سرم و الکترولیت‌ها.</li>
@@ -820,10 +819,10 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={handleBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-8 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">ارزیابی زخم فشاری</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">انتخاب ابزار بر اساس هدف ارزیابی (ریسک یا پایش)</p>
+      <div className="premium-card p-10 space-y-8 border-[#c69d5b]/25 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">ارزیابی زخم فشاری</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">انتخاب ابزار بر اساس هدف ارزیابی (ریسک یا پایش)</p>
         </div>
         {renderContent()}
       </div>
@@ -833,11 +832,11 @@ const PressureUlcerAssessment: React.FC<{ onBack: () => void; onHome: () => void
 };
 
 const MainCard = ({ title, subtitle, icon, onClick, description }: any) => (
-  <button onClick={onClick} className="group premium-card p-10 transition-all duration-300 hover:-translate-y-2 flex flex-col items-center text-center border-white/5 hover:border-indigo-500/50">
-    <div className="w-24 h-24 bg-indigo-500/10 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 text-6xl">{icon}</div>
-    <h3 className="text-3xl font-black text-white mb-2">{title}</h3>
-    <p className="text-indigo-400 text-sm font-bold mb-4">{subtitle}</p>
-    <p className="text-slate-400 text-xs leading-relaxed">{description}</p>
+  <button onClick={onClick} className="group premium-card p-10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col items-center text-center border-[#c69d5b]/30 hover:border-[#096067] cursor-pointer shadow-md hover:shadow-xl">
+    <div className="w-24 h-24 bg-[#096067]/10 border border-[#c69d5b]/30 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-[#096067] group-hover:text-white transition-all text-6xl shadow-sm">{icon}</div>
+    <h3 className="text-3xl font-black text-[#062a2e] mb-2 group-hover:text-[#096067] transition-colors">{title}</h3>
+    <p className="text-[#ca7f3c] text-sm font-bold mb-4">{subtitle}</p>
+    <p className="text-[#475569] text-xs leading-relaxed font-medium">{description}</p>
   </button>
 );
 

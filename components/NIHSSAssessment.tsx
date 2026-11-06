@@ -98,10 +98,10 @@ const NIHSSAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> = (
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={onBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-8 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">مقیاس سکته مغزی انستیتوی ملی بهداشت (NIHSS)</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">ابزار استاندارد برای ارزیابی شدت سکته مغزی حاد</p>
+      <div className="premium-card p-10 space-y-8 border-[#c69d5b]/30 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">مقیاس سکته مغزی انستیتوی ملی بهداشت (NIHSS)</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">ابزار استاندارد برای ارزیابی شدت سکته مغزی حاد</p>
         </div>
         <div className="grid gap-12 pt-8">
           <AssessmentRow title="۱a. سطح هوشیاری" description="میزان پاسخ‌دهی کلی بیمار را ارزیابی کنید. اگر بیمار اینتوبه یا دچار تروما باشد، امتیاز مناسب را انتخاب کنید." currentValue={scores.loc} onSelect={(v) => handleSelect('loc', v)} options={[{label: 'هوشیار کامل (Alert)', value: 0}, {label: 'خواب آلود (Drowsy)', value: 1}, {label: 'مات و مبهوت (Stuporous)', value: 2}, {label: 'کما (Coma)', value: 3}]} />

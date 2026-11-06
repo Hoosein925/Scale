@@ -60,17 +60,17 @@ const SuicideRiskAssessment: React.FC<{ onBack: () => void; onHome: () => void; 
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={onBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">معیار ارزیابی خطر خودکشی (SAD PERSONS)</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">موارد منطبق با وضعیت بیمار را انتخاب کنید (هر مورد ۱ امتیاز)</p>
+      <div className="premium-card p-10 space-y-12 border-[#c69d5b]/30 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">معیار ارزیابی خطر خودکشی (SAD PERSONS)</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">موارد منطبق با وضعیت بیمار را انتخاب کنید (هر مورد ۱ امتیاز)</p>
         </div>
         <div className="space-y-4">
           {sadPersonsCriteria.map(item => (
-            <label key={item.name} className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${criteria[item.name] ? 'bg-indigo-600/20 border-indigo-500' : 'bg-white/5 border-white/5'}`}>
-              <input type="checkbox" checked={!!criteria[item.name]} onChange={() => toggleCriterion(item.name)} className="w-5 h-5 rounded text-indigo-500 bg-slate-700 border-slate-500 focus:ring-indigo-500" />
-              <span className="mr-4 text-white font-bold flex-1">{item.label}</span>
-              <span className="font-black text-lg text-emerald-400">+{item.points}</span>
+            <label key={item.name} className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${criteria[item.name] ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-white/90 border-[#c69d5b]/25 hover:border-[#096067] hover:bg-white text-[#062a2e]'}`}>
+              <input type="checkbox" checked={!!criteria[item.name]} onChange={() => toggleCriterion(item.name)} className="w-5 h-5 rounded text-[#096067] bg-white border-[#c69d5b]/40 focus:ring-[#096067]" />
+              <span className={`mr-4 font-bold flex-1 ${criteria[item.name] ? 'text-white' : 'text-[#062a2e]'}`}>{item.label}</span>
+              <span className={`font-black text-lg ${criteria[item.name] ? 'text-[#eedaa8]' : 'text-[#ca7f3c]'}`}>+{item.points}</span>
             </label>
           ))}
         </div>

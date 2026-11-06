@@ -338,60 +338,71 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
   }, [type, ph, co2, hco3, o2, fio2, na, cl]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 animate-in" dir="rtl">
       <ModuleHeader onBack={onBack} onHome={onHome} />
       
-      <div className="premium-card p-10 space-y-10 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">تفسیر گازهای خونی (ABG / VBG)</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">
+      <div className="premium-card p-3.5 sm:p-6 md:p-8 space-y-6 sm:space-y-8 border-2 border-[#c69d5b]/30 shadow-md">
+        <div className="pb-5 sm:pb-6 border-b border-[#c69d5b]/20 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#092b36] to-[#04141a] rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 mx-auto border-2 border-[#c69d5b]/50 shadow-md">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#eedaa8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M9 3h6M10 3v6l-4 8a3 3 0 0 0 3 4h6a3 3 0 0 0 3-4l-4-8V3" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="10" cy="16" r="1" fill="currentColor" />
+              <circle cx="14" cy="14" r="1.5" fill="currentColor" />
+              <circle cx="12" cy="18" r="1" fill="currentColor" />
+            </svg>
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-black text-[#062a2e]">تفسیر گازهای خونی (ABG / VBG)</h3>
+          <p className="text-[#096067] text-xs sm:text-sm font-bold mt-1.5 max-w-xl mx-auto">
             محاسبه خودکار اختلالات اسید و باز، سنجش میزان جبران، بررسی اکسیژن‌رسانی و فرمول شکاف آنیونی (Anion Gap)
           </p>
         </div>
 
         {/* Presets and Tutorial */}
-        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
-          <h4 className="text-lg font-black text-white flex items-center gap-2">
-            <span className="text-xl">🎓</span> الگوهای پیش‌فرض و موارد بالینی جهت آزمایش و یادگیری
-          </h4>
-          <p className="text-xs text-slate-400">با کلیک روی هر یک از سناریوهای زیر، پارامترهای فرم به طور خودکار منطبق با علائم آن سناریو تنظیم می‌شوند:</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 border-[#c69d5b]/35 shadow-xs space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎓</span>
+            <h4 className="text-sm sm:text-base font-black text-[#062a2e]">
+              الگوهای بالینی آماده جهت آزمایش و یادگیری سریع
+            </h4>
+          </div>
+          <p className="text-[11px] sm:text-xs text-[#475569] font-medium">با انتخاب هر سناریو، مقادیر به صورت خودکار در فرم جایگذاری می‌شوند:</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 pt-1">
             {presets.map((preset, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => applyPreset(preset)}
-                className="p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-right transition-all group"
+                className="p-2.5 sm:p-3 bg-[#fcfaf7] hover:bg-white border-2 border-[#c69d5b]/30 hover:border-[#096067] rounded-xl sm:rounded-2xl text-right transition-all group shadow-xs cursor-pointer active:scale-98"
               >
-                <div className="text-indigo-300 font-black text-xs group-hover:text-white transition-colors">{preset.name}</div>
-                <div className="text-[10px] text-slate-500 mt-1 line-clamp-2 h-7">{preset.desc}</div>
+                <div className="text-[#062a2e] font-black text-xs group-hover:text-[#096067] transition-colors">{preset.name}</div>
+                <div className="text-[10px] text-[#55696d] mt-1 line-clamp-2 leading-tight">{preset.desc}</div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Inputs Panel */}
-          <div className="lg:col-span-6 space-y-8 bg-white/5 p-8 rounded-3xl border border-white/5">
-            <h4 className="text-xl font-black text-white border-b border-white/5 pb-4 flex items-center gap-3">
-              <span className="text-2xl">🩸</span> پارامترهای برگه آزمایش
+          <div className="lg:col-span-6 space-y-4 sm:space-y-5 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 border-[#c69d5b]/35 shadow-sm">
+            <h4 className="text-base sm:text-lg font-black text-[#062a2e] border-b border-[#c69d5b]/20 pb-3 flex items-center gap-2">
+              <span className="text-xl">🩸</span> پارامترهای برگه آزمایش
             </h4>
 
             {/* ABG vs VBG Toggle */}
-            <div className="space-y-3">
-              <label className="text-slate-300 text-sm font-bold block">نوع نمونه خون (Blood Sample Type)</label>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[#062a2e] text-xs sm:text-sm font-black block">نوع نمونه خون (Blood Sample Type)</label>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setType('ABG')}
-                  className={`p-4 rounded-2xl font-black text-base border transition-all ${type === 'ABG' ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'}`}
+                  className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer ${type === 'ABG' ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-[#fcfaf7] border-[#c69d5b]/30 text-[#062a2e] hover:border-[#096067]'}`}
                 >
                   🔴 شریانی (ABG)
                 </button>
                 <button
                   type="button"
                   onClick={() => setType('VBG')}
-                  className={`p-4 rounded-2xl font-black text-base border transition-all ${type === 'VBG' ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'}`}
+                  className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer ${type === 'VBG' ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-[#fcfaf7] border-[#c69d5b]/30 text-[#062a2e] hover:border-[#096067]'}`}
                 >
                   🔵 وریدی (VBG)
                 </button>
@@ -399,12 +410,12 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
             </div>
 
             {/* pH Input */}
-            <div className="space-y-3">
+            <div className="bg-[#fcfaf7] p-3 sm:p-4 rounded-2xl border-2 border-[#c69d5b]/25 space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-slate-300 text-sm font-bold">میزان اسیدیته خون (pH)</label>
-                <span className="text-indigo-300 font-mono text-lg font-black">{ph.toFixed(2)}</span>
+                <label className="text-[#062a2e] text-xs sm:text-sm font-black">اسیدیته خون (pH)</label>
+                <span className="text-[#096067] font-mono text-base sm:text-lg font-black bg-white px-2.5 py-0.5 rounded-xl border border-[#c69d5b]/40 shadow-xs">{ph.toFixed(2)}</span>
               </div>
-              <p className="text-[10px] text-slate-400">محدوده نرمال {type === 'ABG' ? 'شریانی: ۷.۳۵ - ۷.۴۵' : 'وریدی: ۷.۳۱ - ۷.۴۱'}</p>
+              <p className="text-[10px] text-[#475569] font-medium">محدوده مرجع {type === 'ABG' ? 'شریانی: ۷.۳۵ - ۷.۴۵' : 'وریدی: ۷.۳۱ - ۷.۴۱'}</p>
               <input
                 type="range"
                 min="6.80"
@@ -412,9 +423,9 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
                 step="0.01"
                 value={ph}
                 onChange={(e) => setPh(parseFloat(e.target.value))}
-                className="w-full accent-indigo-500"
+                className="w-full h-2 accent-[#096067] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <div className="flex justify-between text-[9px] sm:text-[10px] text-[#55696d] font-bold">
                 <span>اسیدوز شدید (6.8)</span>
                 <span>نرمال (7.4)</span>
                 <span>آلکالوز شدید (7.8)</span>
@@ -422,101 +433,101 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
             </div>
 
             {/* pCO2 Input */}
-            <div className="space-y-3">
+            <div className="bg-[#fcfaf7] p-3 sm:p-4 rounded-2xl border-2 border-[#c69d5b]/25 space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-slate-300 text-sm font-bold">فشار دی‌اکسید کربن (pCO2 / pvCO2) - mmHg</label>
-                <span className="text-emerald-400 font-mono text-lg font-black">{co2} mmHg</span>
+                <label className="text-[#062a2e] text-xs sm:text-sm font-black">فشار دی‌اکسید کربن (pCO2) - mmHg</label>
+                <span className="text-[#096067] font-mono text-base sm:text-lg font-black bg-white px-2.5 py-0.5 rounded-xl border border-[#c69d5b]/40 shadow-xs">{co2} mmHg</span>
               </div>
-              <p className="text-[10px] text-slate-400">محدوده نرمال {type === 'ABG' ? 'شریانی: ۳۵ - ۴۵' : 'وریدی: ۴۰ - ۵۰'}</p>
+              <p className="text-[10px] text-[#475569] font-medium">محدوده مرجع {type === 'ABG' ? 'شریانی: ۳۵ - ۴۵' : 'وریدی: ۴۰ - ۵۰'}</p>
               <input
                 type="range"
                 min="10"
                 max="100"
                 value={co2}
                 onChange={(e) => setCo2(parseInt(e.target.value))}
-                className="w-full accent-emerald-500"
+                className="w-full h-2 accent-[#096067] cursor-pointer"
               />
             </div>
 
             {/* HCO3- Input */}
-            <div className="space-y-3">
+            <div className="bg-[#fcfaf7] p-3 sm:p-4 rounded-2xl border-2 border-[#c69d5b]/25 space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-slate-300 text-sm font-bold">بیکربنات (HCO3-) - mEq/L</label>
-                <span className="text-amber-400 font-mono text-lg font-black">{hco3} mEq/L</span>
+                <label className="text-[#062a2e] text-xs sm:text-sm font-black">بیکربنات (HCO3-) - mEq/L</label>
+                <span className="text-[#ca7f3c] font-mono text-base sm:text-lg font-black bg-white px-2.5 py-0.5 rounded-xl border border-[#c69d5b]/40 shadow-xs">{hco3} mEq/L</span>
               </div>
-              <p className="text-[10px] text-slate-400">محدوده نرمال: ۲۲ - ۲۶ mEq/L</p>
+              <p className="text-[10px] text-[#475569] font-medium">محدوده مرجع فیزیولوژیک: ۲۲ - ۲۶ mEq/L</p>
               <input
                 type="range"
                 min="5"
                 max="50"
                 value={hco3}
                 onChange={(e) => setHco3(parseInt(e.target.value))}
-                className="w-full accent-amber-500"
+                className="w-full h-2 accent-[#ca7f3c] cursor-pointer"
               />
             </div>
 
             {/* pO2 Input */}
-            <div className="space-y-3">
+            <div className="bg-[#fcfaf7] p-3 sm:p-4 rounded-2xl border-2 border-[#c69d5b]/25 space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-slate-300 text-sm font-bold">
+                <label className="text-[#062a2e] text-xs sm:text-sm font-black">
                   {type === 'ABG' ? 'فشار اکسیژن شریانی (paO2) - mmHg' : 'فشار اکسیژن وریدی (pvO2) - mmHg'}
                 </label>
-                <span className="text-sky-400 font-mono text-lg font-black">{o2} mmHg</span>
+                <span className="text-[#096067] font-mono text-base sm:text-lg font-black bg-white px-2.5 py-0.5 rounded-xl border border-[#c69d5b]/40 shadow-xs">{o2} mmHg</span>
               </div>
-              <p className="text-[10px] text-slate-400">محدوده نرمال {type === 'ABG' ? 'شریانی: ۸۰ - ۱۰۰' : 'وریدی: ۳۰ - ۴۰'}</p>
+              <p className="text-[10px] text-[#475569] font-medium">محدوده نرمال {type === 'ABG' ? 'شریانی: ۸۰ - ۱۰۰' : 'وریدی: ۳۰ - ۴۰'}</p>
               <input
                 type="range"
                 min="20"
                 max="150"
                 value={o2}
                 onChange={(e) => setO2(parseInt(e.target.value))}
-                className="w-full accent-sky-500"
+                className="w-full h-2 accent-[#096067] cursor-pointer"
               />
             </div>
 
             {/* FiO2 Input - Only shown for ABG */}
             {type === 'ABG' && (
-              <div className="space-y-3 border-t border-white/5 pt-4">
+              <div className="bg-[#fcfaf7] p-3 sm:p-4 rounded-2xl border-2 border-[#c69d5b]/25 space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-slate-300 text-sm font-bold">درصد اکسیژن دریافتی (FiO2) - %</label>
-                  <span className="text-indigo-300 font-mono text-lg font-black">{fio2}%</span>
+                  <label className="text-[#062a2e] text-xs sm:text-sm font-black">درصد اکسیژن دریافتی (FiO2) - %</label>
+                  <span className="text-[#ca7f3c] font-mono text-base sm:text-lg font-black bg-white px-2.5 py-0.5 rounded-xl border border-[#c69d5b]/40 shadow-xs">{fio2}%</span>
                 </div>
-                <p className="text-[10px] text-slate-400">هوای اتاق: ۲۱٪ | ماسک ساده یا ونتیلاتور: ۳۰٪ تا ۱۰۰٪</p>
+                <p className="text-[10px] text-[#475569] font-medium">هوای اتاق: ۲۱٪ | ماسک ساده/ونتیلاتور: ۳۰٪ تا ۱۰۰٪</p>
                 <input
                   type="range"
                   min="21"
                   max="100"
                   value={fio2}
                   onChange={(e) => setFio2(parseInt(e.target.value))}
-                  className="w-full accent-indigo-400"
+                  className="w-full h-2 accent-[#ca7f3c] cursor-pointer"
                 />
               </div>
             )}
 
             {/* Optional Electrolytes for Anion Gap */}
-            <div className="space-y-4 border-t border-white/5 pt-6">
-              <h5 className="text-sm font-black text-white flex items-center gap-2">
+            <div className="space-y-3 border-t-2 border-[#c69d5b]/20 pt-4">
+              <h5 className="text-xs sm:text-sm font-black text-[#062a2e] flex items-center gap-1.5">
                 <span>🧪</span> وارد کردن الکترولیت‌ها برای محاسبه شکاف آنیونی (اختیاری)
               </h5>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-slate-400 text-xs font-bold block">سدیم (Na+) - mEq/L</label>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+                <div className="space-y-1">
+                  <label className="text-[#475569] text-[11px] font-bold block">سدیم (Na+) mEq/L</label>
                   <input
                     type="number"
                     value={na}
                     onChange={(e) => setNa(e.target.value)}
                     placeholder="مانند 140"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-center focus:border-indigo-500 focus:outline-none transition-colors"
+                    className="w-full bg-[#fcfaf7] border-2 border-[#c69d5b]/35 rounded-xl px-3 py-2 text-[#062a2e] font-mono text-center font-bold focus:border-[#096067] focus:outline-none transition-colors text-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-slate-400 text-xs font-bold block">کلر (Cl-) - mEq/L</label>
+                <div className="space-y-1">
+                  <label className="text-[#475569] text-[11px] font-bold block">کلر (Cl-) mEq/L</label>
                   <input
                     type="number"
                     value={cl}
                     onChange={(e) => setCl(e.target.value)}
                     placeholder="مانند 104"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-center focus:border-indigo-500 focus:outline-none transition-colors"
+                    className="w-full bg-[#fcfaf7] border-2 border-[#c69d5b]/35 rounded-xl px-3 py-2 text-[#062a2e] font-mono text-center font-bold focus:border-[#096067] focus:outline-none transition-colors text-sm"
                   />
                 </div>
               </div>
@@ -524,52 +535,49 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-6 flex flex-col justify-between gap-8">
+          <div className="lg:col-span-6 flex flex-col justify-between gap-5 sm:gap-6">
             {result && (
-              <div className="space-y-6">
-                <h4 className="text-xl font-black text-white border-b border-white/5 pb-4 flex items-center gap-3">
-                  <span className="text-2xl">📊</span> تحلیل و تفسیر تخصصی
+              <div className="space-y-4 sm:space-y-5">
+                <h4 className="text-base sm:text-lg font-black text-[#062a2e] border-b border-[#c69d5b]/20 pb-3 flex items-center gap-2">
+                  <span className="text-xl">📊</span> تحلیل و تفسیر تخصصی
                 </h4>
 
-                {/* Primary Diagnosis Card */}
-                <div className={`bg-gradient-to-br ${result.bgGradient} rounded-3xl p-8 border text-white shadow-xl relative overflow-hidden transition-all duration-300`}>
-                  <div className="absolute inset-0 bg-black/10"></div>
-                  <div className="relative">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">تشخیص اصلی (Primary Diagnosis)</span>
-                    <h5 className={`text-2xl font-black ${result.color} mt-2 leading-snug`}>
+                {/* Primary Diagnosis Card - High Contrast Luxury Navy */}
+                <div className="bg-gradient-to-br from-[#092b36] via-[#061f27] to-[#04141a] rounded-2xl sm:rounded-3xl p-5 sm:p-7 border-2 border-[#eedaa8]/70 text-white shadow-lg relative overflow-hidden">
+                  <div className="relative space-y-2">
+                    <span className="text-[#eedaa8] text-xs font-black uppercase tracking-wider block">تشخیص اصلی (Primary Diagnosis)</span>
+                    <h5 className="text-xl sm:text-2xl font-black text-[#fdfbf7] leading-snug">
                       {result.primaryDisturbance}
                     </h5>
                     
-                    <div className="mt-4 pt-4 border-t border-white/10 space-y-2 text-sm">
-                      <div>
-                        <span className="text-slate-300 font-bold block">وضعیت جبران بالینی (Compensation):</span>
-                        <p className="text-white font-medium mt-1 leading-relaxed">
-                          {result.compensationStatus}
-                        </p>
-                      </div>
+                    <div className="mt-3 pt-3 border-t border-white/15 space-y-1 text-xs sm:text-sm">
+                      <span className="text-[#eedaa8] font-bold block">وضعیت جبران بالینی (Compensation):</span>
+                      <p className="text-[#d8e8eb] font-medium leading-relaxed">
+                        {result.compensationStatus}
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Quantitative Review */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">ارزیابی پارامترها و بازخورد آزمایشگاه</span>
-                  <p className="text-slate-200 text-sm font-medium leading-relaxed">
+                <div className="bg-white border-2 border-[#096067]/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-2 shadow-sm">
+                  <span className="text-[#096067] text-xs font-black uppercase tracking-wider block">ارزیابی پارامترها و بازخورد بالینی</span>
+                  <p className="text-[#062a2e] text-xs sm:text-sm font-bold leading-relaxed">
                     {result.interpretationText}
                   </p>
                 </div>
 
                 {/* Oxygenation Analysis */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-3">
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">اکسیژن‌رسانی (Oxygenation Status)</span>
-                  <p className="text-slate-200 text-sm font-medium leading-relaxed">
+                <div className="bg-white border-2 border-[#096067]/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-2 shadow-sm">
+                  <span className="text-[#096067] text-xs font-black uppercase tracking-wider block">اکسیژن‌رسانی (Oxygenation Status)</span>
+                  <p className="text-[#062a2e] text-xs sm:text-sm font-bold leading-relaxed">
                     {result.oxygenationStatus}
                   </p>
                   
                   {type === 'ABG' && result.pfRatio && result.pfRatioInterpretation && (
-                    <div className="mt-3 pt-3 border-t border-white/5">
-                      <span className="text-indigo-300 text-xs font-bold block">شاخص و نسبت P/F Ratio (PaO2/FiO2):</span>
-                      <p className="text-slate-300 text-xs mt-1 leading-relaxed">
+                    <div className="mt-2.5 pt-2.5 border-t border-[#c69d5b]/20">
+                      <span className="text-[#ca7f3c] text-xs font-black block">شاخص نسبت P/F Ratio (PaO2/FiO2):</span>
+                      <p className="text-[#334155] text-xs mt-1 leading-relaxed font-bold">
                         {result.pfRatioInterpretation}
                       </p>
                     </div>
@@ -578,13 +586,13 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
 
                 {/* Anion Gap Results */}
                 {result.anionGap !== undefined && result.anionGapInterpretation && (
-                  <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-3 animate-in">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">شکاف آنیونی (Anion Gap Calculation)</span>
-                    <p className="text-slate-200 text-xs font-bold leading-relaxed">
+                  <div className="bg-white border-2 border-[#ca7f3c]/40 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-2 animate-in shadow-sm">
+                    <span className="text-[#ca7f3c] text-xs font-black uppercase tracking-wider block">شکاف آنیونی (Anion Gap Calculation)</span>
+                    <p className="text-[#062a2e] text-xs font-bold leading-relaxed">
                       {result.anionGapInterpretation}
                     </p>
-                    <div className="text-[10px] text-indigo-300 font-mono">
-                      فرمول: Anion Gap = Na⁺ - (Cl⁻ + HCO₃⁻) = {na} - ({cl} + {hco3}) = {result.anionGap.toFixed(1)}
+                    <div className="text-[11px] text-[#096067] font-mono font-bold bg-[#fcfaf7] p-2 rounded-xl border border-[#c69d5b]/30">
+                      فرمول: Anion Gap = Na⁺ - (Cl⁻ + HCO₃⁻) = {na} - ({cl} + {hco3}) = {result.anionGap.toFixed(1)} mEq/L
                     </div>
                   </div>
                 )}
@@ -592,13 +600,13 @@ const BloodGasAnalysis: React.FC<Props> = ({ onBack, onHome }) => {
             )}
 
             {/* Informative Guidance */}
-            <div className="bg-indigo-950/40 p-6 rounded-2xl border border-indigo-500/20 text-xs leading-relaxed text-indigo-200">
-              <strong className="text-indigo-300 font-bold block mb-1">💡 راهنمای آموزشی پایش گازهای خونی:</strong>
-              <ul className="list-disc list-inside space-y-1.5 mt-1">
-                <li><strong>گام اول:</strong> ابتدا pH را بررسی کنید تا وجود اسیدمی (pH &lt; 7.35) یا آلکالمی (pH &gt; 7.45) مشخص شود.</li>
-                <li><strong>گام دوم:</strong> جهت تعیین علت اصلی، تغییرات CO2 و HCO3 را مقایسه کنید (قانون ROME: Respiratory Opposite, Metabolic Equal).</li>
-                <li><strong>گام سوم:</strong> جبران سیستم ثانویه (ریه یا کلیه) را بسنجید تا جبران کامل، جزئی یا عدم جبران مشخص گردد.</li>
-                <li><strong>گام چهارم:</strong> در اسیدوز متابولیک، حتماً شکاف آنیونی را محاسبه کنید تا بین علل ایجاد اسیدوز تفکیک حاصل شود.</li>
+            <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 border-[#c69d5b]/35 shadow-xs text-xs leading-relaxed text-[#062a2e]">
+              <strong className="text-[#096067] font-black block mb-1.5 text-xs sm:text-sm">💡 راهنمای آموزشی پایش گازهای خونی:</strong>
+              <ul className="list-disc list-inside space-y-1 font-bold text-[#334155]">
+                <li><strong>گام ۱:</strong> ابتدا pH را بررسی کنید تا وجود اسیدمی (pH &lt; 7.35) یا آلکالمی (pH &gt; 7.45) مشخص شود.</li>
+                <li><strong>گام ۲:</strong> جهت تعیین علت اصلی، تغییرات CO2 و HCO3 را مقایسه کنید (قانون ROME).</li>
+                <li><strong>گام ۳:</strong> جبران سیستم ثانویه (ریه یا کلیه) را بسنجید تا جبران کامل، جزئی یا عدم جبران مشخص گردد.</li>
+                <li><strong>گام ۴:</strong> در اسیدوز متابولیک، حتماً شکاف آنیونی را محاسبه کنید تا بین علل تفکیک حاصل شود.</li>
               </ul>
             </div>
           </div>

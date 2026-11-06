@@ -1,468 +1,323 @@
-import React, { useState } from 'react';
-import { PainSeverity, AssessmentResult } from '../types';
+import React, { useEffect, useState } from 'react';
+import { AssessmentResult, PainSeverity } from '../types';
+import AssessmentRow from './common/AssessmentRow';
+import { NEONATAL_DRUGS, NEONATAL_PROCEDURES } from './painData';
 
 interface Props {
-  onAssess: (result: AssessmentResult) => void;
-  onBack: () => void;
-  onHome: () => void;
+  onAssess: (result: AssessmentResult | null) => void;
+  onBack?: () => void;
+  onHome?: () => void;
 }
 
-type TabType = 'NIPS' | 'CRIES' | 'NON_PHARM';
+type Item = { key: string; title: string; description?: string; options: string[] };
+type ToolId = 'PIPP' | 'NIPS' | 'CRIES' | 'MPAT';
 
-const NeonatalAssessment: React.FC<Props> = ({ onAssess, onBack, onHome }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('NIPS');
+interface ToolDef {
+  id: ToolId;
+  title: string;
+  shortTitle: string;
+  subtitle: string;
+  use: string;
+  max: number;
+  items: Item[];
+  severity: (score: number) => PainSeverity;
+  interpret: (score: number) => string;
+  bands: string;
+  note?: string;
+  intro?: string;
+}
 
-  // NIPS state
-  const [nips, setNips] = useState({
-    facialExpression: 0,
-    cry: 0,
-    breathingPattern: 0,
-    arms: 0,
-    legs: 0,
-    arousalState: 0,
-  });
+const sevColor: Record<PainSeverity, string> = {
+  [PainSeverity.NONE]: 'bg-emerald-600',
+  [PainSeverity.MILD]: 'bg-amber-500',
+  [PainSeverity.MODERATE]: 'bg-orange-600',
+  [PainSeverity.SEVERE]: 'bg-rose-700',
+  [PainSeverity.VERY_SEVERE]: 'bg-red-800',
+};
 
-  // CRIES state
-  const [cries, setCries] = useState({
-    crying: 0,
-    requiresO2: 0,
-    increasedVitals: 0,
-    expression: 0,
-    sleeplessness: 0,
-  });
+const PCT = ['عادی: ۰–۹٪ زمان', 'حداقل: ۱۰–۳۹٪ زمان', 'متوسط: ۴۰–۶۹٪ زمان', 'حداکثر: ≥۷۰٪ زمان'];
 
-  const handleNipsChange = (field: keyof typeof nips, val: number) => {
-    const nextNips = { ...nips, [field]: val };
-    setNips(nextNips);
-    const score = nextNips.facialExpression + nextNips.cry + nextNips.breathingPattern + nextNips.arms + nextNips.legs + nextNips.arousalState;
-    
-    let severity = PainSeverity.NONE;
-    let interpretation = '';
-    
-    if (score <= 2) {
-      severity = PainSeverity.NONE;
-      interpretation = 'بدون درد یا درد بسیار خفیف (تسکین محیطی و مراقبت‌های روتین)';
-    } else if (score <= 4) {
-      severity = PainSeverity.MILD;
-      interpretation = 'درد خفیف تا متوسط (شروع فوری اقدامات غیردارویی نظیر قنداق کردن، ساکارز ۲۴٪، پستانک و ارزیابی مجدد پس از ۳۰ دقیقه)';
-    } else {
-      severity = PainSeverity.SEVERE;
-      interpretation = 'درد شدید (شروع فوری مداخلات غیردارویی، گزارش به پزشک جهت بررسی نیاز به داروی مسکن و پایش مداوم علائم حیاتی)';
-    }
+const TOOLS: ToolDef[] = [
+  {
+    id: 'PIPP',
+    title: 'PIPP — پروفایل درد شیرخواران پره‌ترم',
+    shortTitle: 'پروفایل درد شیرخواران پره‌ترم',
+    subtitle: 'Premature Infant Pain Profile',
+    use: 'نوزادان پره‌ترم (زودرس)؛ دردهای حاد. در نوزادان تحت ونتیلاتور به‌طور روتین همراه سایر علائم حیاتی.',
+    max: 21,
+    intro: 'ابتدا ۱۵ ثانیه قبل از اقدام درمانی، وضعیت رفتاری، ضربان قلب و اشباع اکسیژن پایه را ثبت کنید؛ سپس بلافاصله بعد از اقدام به مدت ۳۰ ثانیه ارزیابی کنید.',
+    items: [
+      { key: 'ga', title: '۱. سن حاملگی (در زمان مشاهده)', options: ['۳۶ هفته یا بیشتر', '۳۲ هفته تا ۳۵ هفته و ۶ روز', '۲۸ هفته تا ۳۱ هفته و ۶ روز', 'کمتر از ۲۸ هفته'] },
+      { key: 'state', title: '۲. وضعیت رفتاری (۱۵ ثانیهٔ پایه)', options: ['فعال یا بیدار، چشم‌های باز، حرکات صورت', 'آرام یا بیدار، چشم‌ها باز، بدون حرکات صورت', 'فعال یا خواب، چشم‌ها بسته، حرکات صورت', 'خواب یا آرام، چشم‌ها بسته، بدون حرکات صورت'] },
+      { key: 'hr', title: '۳. حداکثر ضربان قلب (۳۰ ثانیه)', options: ['۰–۴ ضربه در دقیقه افزایش', '۵–۱۴ ضربه در دقیقه افزایش', '۱۵–۲۴ ضربه در دقیقه افزایش', '۲۵ ضربه یا بیشتر افزایش'] },
+      { key: 'spo2', title: '۴. حداقل اشباع اکسیژن (۳۰ ثانیه)', options: ['۰ تا ۲٫۴٪ کاهش', '۲٫۵ تا ۴٫۹٪ کاهش', '۵ تا ۷٫۴٪ کاهش', '۷٫۵٪ یا بیشتر کاهش'] },
+      { key: 'brow', title: '۵. در هم کشیدن ابروها', options: PCT },
+      { key: 'eye', title: '۶. فشردن چشم‌ها', options: PCT },
+      { key: 'naso', title: '۷. خط کنار پره‌های بینی', options: PCT },
+    ],
+    severity: s => (s <= 6 ? PainSeverity.NONE : s <= 12 ? PainSeverity.MODERATE : PainSeverity.SEVERE),
+    interpret: s => (s <= 6 ? 'عدم وجود درد / درد ناچیز' : s <= 12 ? 'درد خفیف تا متوسط' : 'درد شدید'),
+    bands: '≤۶ بدون درد • ۷–۱۲ خفیف تا متوسط • >۱۲ شدید',
+    note: 'نکته: در متن ابلاغیه دامنهٔ نمره یک‌جا «۳ تا ۲۷» و جای دیگر «۰ تا ۲۱» آمده است؛ با ۷ شاخص و امتیاز ۰ تا ۳، دامنهٔ صحیح ۰ تا ۲۱ است. ابلاغیه نمرهٔ ۶ را تعیین‌تکلیف نکرده؛ اینجا «بدون درد/ناچیز» محسوب می‌شود.',
+  },
+  {
+    id: 'NIPS',
+    title: 'NIPS — ابزار اندازه‌گیری درد نوزادان',
+    shortTitle: 'اندازه‌گیری درد نوزادان',
+    subtitle: 'Neonatal Infant Pain Scale',
+    use: 'نوزادان ترم و نارس تا ۶ هفته پس از تولد؛ دردهای حاد ناشی از اقدامات تشخیصی-درمانی (خونگیری مویرگی، وریدی، شریانی). قبل و بعد از اقدام تهاجمی استفاده شود.',
+    max: 7,
+    items: [
+      { key: 'face', title: 'حالت صورت', options: ['حالت آرامش', 'عضلات صورت سفت و کشیده و اخم‌آلود'] },
+      { key: 'cry', title: 'گریه', options: ['آرام، بدون گریه', 'ناله مالیم، گریه متناوب', 'جیغ‌زدن و فریادکشیدن؛ گریه بدون صدا به نحوی که با حرکات صورت مشخص باشد'] },
+      { key: 'breath', title: 'الگوی تنفس', options: ['آرام و طبیعی', 'تنفس نامنظم، سریع، نگه‌داشتن تنفس'] },
+      { key: 'arms', title: 'دست‌ها', options: ['شل، بدون انقباض عضلات، حرکات معمولی', 'انقباض دست‌ها، حرکات سریع باز و بسته شدن دست‌ها'] },
+      { key: 'legs', title: 'پاها', options: ['شل، بدون انقباض عضلات، گاهی پاها را حرکت می‌دهد', 'پاها حالت سفت دارد، به سختی باز و بسته می‌شوند؛ کشیدن پا یا باز و بسته شدن سریع'] },
+      { key: 'arousal', title: 'وضعیت تحریک‌پذیری', options: ['خواب یا بیدار است، در حالت خواب یا بیداری آرامش دارد', 'تحریک‌پذیر است، بی‌قرار است و می‌غلتد'] },
+    ],
+    severity: s => (s === 0 ? PainSeverity.NONE : s < 3 ? PainSeverity.MILD : s <= 5 ? PainSeverity.MODERATE : PainSeverity.SEVERE),
+    interpret: s => (s === 0 ? 'فاقد درد' : s < 3 ? 'درد خفیف' : s <= 5 ? 'درد متوسط؛ نیازمند مداخلات تسکینی' : 'درد شدید'),
+    bands: '۰ بدون درد • ۱–۲ خفیف • ۳–۵ متوسط • ۶–۷ شدید',
+    note: 'طبق ابلاغیه: کمتر از ۳ خفیف، ۳ تا ۵ متوسط، بالاتر از ۶ شدید. چون نمرهٔ ۶ تعیین‌تکلیف نشده، در این برنامه به‌صورت محافظه‌کارانه «شدید» در نظر گرفته می‌شود.',
+  },
+  {
+    id: 'CRIES',
+    title: 'CRIES — درد بعد از عمل جراحی نوزادان',
+    shortTitle: 'درد بعد از عمل جراحی نوزادان',
+    subtitle: 'Crying, Oxygenation, Vital Signs, Facial Expression, Sleeplessness',
+    use: 'نوزادان نارس و ترم در بخش‌های مراقبت ویژه که تحت عمل جراحی قرار گرفته‌اند؛ به‌طور روتین پس از جراحی.',
+    max: 10,
+    items: [
+      { key: 'cry', title: 'گریه (Crying)', options: ['گریه نمی‌کند یا صدای گریه بلند نیست', 'گریهٔ بلند (به راحتی ساکت می‌شود)', 'گریهٔ خیلی بلند (با آرام کردن، ساکت نمی‌شود)'] },
+      { key: 'o2', title: 'اکسیژن مورد نیاز برای اشباع بیش از ۹۵٪ (Oxygenation)', options: ['اکسیژن مورد نیاز نیست', 'اکسیژن کمتر از ۳۰٪ مورد نیاز است', 'اکسیژن بیشتر از ۳۰٪ مورد نیاز است'] },
+      { key: 'vs', title: 'علائم حیاتی (Vital signs)', options: ['ضربان قلب و فشارخون برابر یا کمتر از قبل از عمل', 'افزایش ضربان قلب یا فشارخون کمتر از ۲۰٪ قبل از عمل', 'افزایش ضربان قلب یا فشارخون بیشتر از ۲۰٪ قبل از عمل'] },
+      { key: 'face', title: 'حالات صورت (Facial expression)', options: ['حالت طبیعی', 'حالت شکلک درآوردن', 'شکلک درآوردن یا نالیدن'] },
+      { key: 'sleep', title: 'بی‌خوابی (Sleeplessness)', options: ['نوزاد به طور مداوم خواب است', 'مرتب از خواب بیدار می‌شود؛ مدت زمان زیادی بیدار است', 'همیشه و به طور مداوم بیدار است'] },
+    ],
+    severity: s => (s === 0 ? PainSeverity.NONE : s <= 3 ? PainSeverity.MILD : s <= 6 ? PainSeverity.MODERATE : PainSeverity.SEVERE),
+    interpret: s => (s === 0 ? 'فاقد درد' : s <= 3 ? 'درد خفیف' : s <= 6 ? 'درد متوسط؛ باید مورد توجه قرار گیرد' : 'درد شدید؛ باید مورد توجه قرار گیرد'),
+    bands: '۰ بدون درد • ۱–۳ خفیف • ۴–۶ متوسط • ۷–۱۰ شدید',
+  },
+  {
+    id: 'MPAT',
+    title: 'MPAT — ابزار ارزیابی درد تعدیل‌شده',
+    shortTitle: 'ارزیابی درد تعدیل‌شده',
+    subtitle: 'Modified Pain Assessment Tool',
+    use: 'نوزادان و شیرخواران ۲۴ هفته تا ۶ ماهگی (و نوپایان بستری در PICU)؛ نوزادان تحت تهویهٔ مکانیکی یا با درد مزمن؛ ثبت روتین نمرهٔ درد در شیت.',
+    max: 20,
+    items: [
+      { key: 'tone', title: 'تونیسیته', options: ['ریلکس، نرمال، بدون فلکسیون', 'اندام‌ها کاملاً باز، بدن سفت، شانه‌ها افتاده روی تخت', 'فلکسیون شدید، گارد اندام‌ها، شانه‌ها و گردن در برابر تغییر پوزیشن مقاومت می‌کنند'] },
+      { key: 'sleep', title: 'الگوی خواب', options: ['ریلکس', 'به راحتی بیدار می‌شود', 'با کوچک‌ترین محرک آژیته و وحشت‌زده می‌شود'] },
+      { key: 'cry', title: 'گریه', options: ['ندارد', 'دارد ولی قابل کنترل', 'دارد ولی به سادگی بعد از دستکاری آرام نمی‌شود؛ بلند گریه می‌کند'] },
+      { key: 'face', title: 'حالات صورت', options: ['ریلکس، آرام', 'اخمو، چین‌های کم‌عمق، چشم‌ها نیمه‌بسته', 'چشم‌ها محکم فشرده، چین‌های عمیق'] },
+      { key: 'skin', title: 'رنگ پوست', options: ['صورتی، پرفیوژن عالی', 'موتلینگ، رنگ‌پریده', 'خیلی رنگ‌پریده یا برافروخته، عرق کف دست'] },
+      { key: 'breath', title: 'تنفس', options: ['نرمال', 'تاکی‌پنه هنگام استراحت', 'آپنه'] },
+      { key: 'hr', title: 'ضربان قلب', options: ['نرمال', 'تاکی‌کاردی هنگام استراحت', 'نوسان چه هنگام استراحت و چه هنگام دستکاری'] },
+      { key: 'spo2', title: 'میزان اشباع اکسیژن خون شریانی', options: ['نرمال', 'کاهش اشباع گذرا', 'کاهش اشباع با یا بدون دستکاری'] },
+      { key: 'bp', title: 'فشار خون', options: ['نرمال', 'نوسان با دستکاری', 'افزایش یا کاهش فشار هنگام استراحت'] },
+      { key: 'staff', title: 'تصمیم کادر درمان', options: ['درد ندارد', 'شیرخوار فقط هنگام دستکاری درد دارد', 'شیرخوار دچار درد است'] },
+    ],
+    severity: s => (s <= 3 ? PainSeverity.NONE : s <= 6 ? PainSeverity.MILD : s <= 12 ? PainSeverity.MODERATE : PainSeverity.SEVERE),
+    interpret: s => (s <= 3 ? 'بدون درد / حداقل درد' : s <= 6 ? 'درد خفیف' : s <= 12 ? 'درد متوسط' : 'درد شدید'),
+    bands: '۰–۳ بدون درد • ۴–۶ خفیف • ۷–۱۲ متوسط • >۱۲ شدید',
+    note: 'نکته: ابلاغیه برای ۰ تا ۳ تفسیری نداده است؛ در این برنامه «بدون درد/حداقل» در نظر گرفته می‌شود.',
+  },
+];
 
+/* --------------------------- یک ابزار --------------------------- */
+
+const ScoredTool: React.FC<{ tool: ToolDef; onAssess: Props['onAssess'] }> = ({ tool, onAssess }) => {
+  const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(tool.items.map(i => [i.key, 0])));
+  const [touched, setTouched] = useState(false);
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const severity = tool.severity(total);
+
+  useEffect(() => {
+    if (!touched) { onAssess(null); return; }
     onAssess({
-      score,
-      severity,
-      interpretation,
-      toolUsed: 'NIPS',
-      recommendations: getNipsRecommendations(score),
-      timestamp: new Date()
+      score: total, severity, toolUsed: tool.id,
+      interpretation: `${tool.interpret(total)} (${tool.id} = ${total} از ${tool.max})`,
+      timestamp: new Date(),
     });
-  };
-
-  const handleCriesChange = (field: keyof typeof cries, val: number) => {
-    const nextCries = { ...cries, [field]: val };
-    setCries(nextCries);
-    const score = nextCries.crying + nextCries.requiresO2 + nextCries.increasedVitals + nextCries.expression + nextCries.sleeplessness;
-    
-    let severity = PainSeverity.NONE;
-    let interpretation = '';
-    
-    if (score <= 3) {
-      severity = PainSeverity.NONE;
-      interpretation = 'بدون درد یا درد بسیار خفیف';
-    } else if (score <= 6) {
-      severity = PainSeverity.MODERATE;
-      interpretation = 'درد متوسط بعد از عمل (شروع اقدامات غیردارویی و در نظر گرفتن دوز مناسب استامینوفن طبق دستورالعمل)';
-    } else {
-      severity = PainSeverity.SEVERE;
-      interpretation = 'درد شدید بعد از عمل (اقدامات دارویی تهاجمی‌تر مثل مسکن‌های مخدر و پایش مداوم هوشیاری و تنفس نوزاد)';
-    }
-
-    onAssess({
-      score,
-      severity,
-      interpretation,
-      toolUsed: 'CRIES',
-      recommendations: getCriesRecommendations(score),
-      timestamp: new Date()
-    });
-  };
-
-  const getNipsRecommendations = (score: number): string[] => {
-    if (score <= 2) {
-      return [
-        "پایداری محیطی نوزاد حفظ شود (کاهش نور مستقیم و سر و صدای بخش).",
-        "مراقبت‌های پرستاری خوشه‌بندی شوند تا فواصل استراحت نوزاد طولانی‌تر گردد.",
-        "ارزیابی درد بر اساس پروتکل بخش (مثلاً هر ۴ تا ۸ ساعت) تکرار شود."
-      ];
-    }
-    if (score <= 4) {
-      return [
-        "تجویز ۲ تا ۴ قطره (۰.۱ تا ۱ میلی‌لیتر) محلول ساکارز ۲۴٪ بر روی زبان نوزاد ۲ دقیقه قبل از مداخلات بعدی.",
-        "تشویق مادر به برقراری تماس پوست به پوست (مراقبت آغوشی کانگورویی - KMC).",
-        "استفاده از روش‌های پوزیشن‌دهی فشرده حمایتی (قنداق کردن شل یا جمع کردن دست و پا به داخل بدن).",
-        "قرار دادن پستانک تمیز در دهان نوزاد جهت مکیدن غیرمغذی.",
-        "ارزیابی مجدد درد ۳۰ دقیقه پس از مداخلات فوق."
-      ];
-    }
-    return [
-      "گزارش فوری به پزشک مقیم جهت ارزیابی و تجویز دوز مناسب مسکن‌های دارویی (مثلاً استامینوفن یا مخدر ملایم).",
-      "انجام سریع اقدامات غیردارویی (تجویز ساکارز ۲۴٪، قنداق کردن و مکیدن غیرمغذی) همزمان با مداخله دارویی.",
-      "پایش مداوم علائم حیاتی نوزاد به ویژه ضربان قلب، تعداد تنفس و اشباع اکسیژن (SaO2).",
-      "ارزیابی مجدد درد پس از تجویز داروی وریدی (بعد از ۱۵ تا ۳۰ دقیقه) یا داروی خوراکی/شیاف (بعد از ۳۰ تا ۶۰ دقیقه)."
-    ];
-  };
-
-  const getCriesRecommendations = (score: number): string[] => {
-    if (score <= 3) {
-      return [
-        "پایش روتین و ثبت درد در کاردکس نوزاد.",
-        "تامین پوزیشن راحت نوزاد و به حداقل رساندن تحریکات محیطی ریکاوری یا بخش."
-      ];
-    }
-    if (score <= 6) {
-      return [
-        "تجویز استامینوفن خوراکی یا شیاف (10-15 mg/kg) با رعایت حداکثر دوز روزانه مجاز.",
-        "استفاده از روش‌های کمکی غیردارویی (ساکارز ۲۴٪ به همراه پستانک، قنداق کردن ملایم).",
-        "ارزیابی مجدد درد نوزاد هر ۱ ساعت تا زمان پایدار شدن امتیاز زیر ۳."
-      ];
-    }
-    return [
-      "مشاوره با پزشک معالج یا سرویس درد جهت بررسی دوزهای درمانی مسکن‌های قوی‌تر (مانند انفوزیون مداوم یا تک‌دوزهای وریدی فنتانیل یا مورفین).",
-      "پایش مداوم قلبی‌ریوی نوزاد (مانیتور اکسیژن و ضربان قلب) جهت جلوگیری از سرکوب تنفسی ناشی از اپیوئیدها.",
-      "آمادگی کامل ترالی اورژانس نوزادان و در دسترس بودن داروی آنتی‌دوت (نالوکسان).",
-      "ارزیابی مجدد درد هر ۳۰ دقیقه تا رسیدن به کنترل مناسب درد."
-    ];
-  };
-
-  const nipsTotal = nips.facialExpression + nips.cry + nips.breathingPattern + nips.arms + nips.legs + nips.arousalState;
-  const criesTotal = cries.crying + cries.requiresO2 + cries.increasedVitals + cries.expression + cries.sleeplessness;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, touched]);
 
   return (
-    <div className="space-y-10 animate-in">
-      {/* Tab Selectors */}
-      <div className="flex flex-wrap justify-center gap-4 bg-slate-900/40 p-2 rounded-[2rem] border border-white/5 max-w-3xl mx-auto">
-        <button
-          onClick={() => setActiveTab('NIPS')}
-          className={`flex-1 py-3 px-6 rounded-2xl text-sm font-black transition-all ${
-            activeTab === 'NIPS'
-              ? 'bg-indigo-600 text-white shadow-xl scale-105'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-          id="tab-nips"
-        >
-          🚼 مقیاس NIPS (نوزادان عمومی)
-        </button>
-        <button
-          onClick={() => setActiveTab('CRIES')}
-          className={`flex-1 py-3 px-6 rounded-2xl text-sm font-black transition-all ${
-            activeTab === 'CRIES'
-              ? 'bg-indigo-600 text-white shadow-xl scale-105'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-          id="tab-cries"
-        >
-          🩹 مقیاس CRIES (بعد از عمل)
-        </button>
-        <button
-          onClick={() => setActiveTab('NON_PHARM')}
-          className={`flex-1 py-3 px-6 rounded-2xl text-sm font-black transition-all ${
-            activeTab === 'NON_PHARM'
-              ? 'bg-indigo-600 text-white shadow-xl scale-105'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-          id="tab-nonpharm"
-        >
-          🧸 دستورالعمل مراقبت‌های پرستاری
-        </button>
+    <div className="premium-card p-6 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">{tool.title}</h3>
+        <p className="text-[#096067] font-bold" dir="ltr">{tool.subtitle}</p>
+        <p className="text-sm font-bold text-[#475569]">{tool.use}</p>
+        {tool.intro && <p className="text-sm font-bold text-rose-700">{tool.intro}</p>}
       </div>
-
-      {activeTab === 'NIPS' && (
-        <div className="space-y-12 premium-card p-8 md:p-10 border-indigo-500/20">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-white/5">
-            <div className="text-right space-y-2">
-              <h3 className="text-3xl font-black text-white">مقیاس ارزیابی درد نوزاد (NIPS)</h3>
-              <p className="text-indigo-400 text-sm font-bold italic">Neonatal Infant Pain Scale — مناسب برای نوزادان ترم و نارس</p>
-            </div>
-            <div className="bg-indigo-950 px-6 py-4 rounded-3xl border border-indigo-500/30 text-center min-w-[120px]">
-              <span className="text-[10px] text-indigo-300 block font-bold mb-1">امتیاز کل NIPS</span>
-              <span className="text-4xl font-black text-white tabular-nums">{nipsTotal}</span>
-              <span className="text-xs text-slate-400 block mt-1">از ۷ امتیاز</span>
-            </div>
-          </div>
-
-          <div className="grid gap-8">
-            <RadioGroup
-              title="۱. حالت چهره (Facial Expression)"
-              description="مشاهده عضلات صورت نوزاد"
-              current={nips.facialExpression}
-              onSelect={(v) => handleNipsChange('facialExpression', v)}
-              options={[
-                { value: 0, label: "آرام و طبیعی (۰)", desc: "عضلات صورت شل، چهره آرام، بدون اخم یا کشیدگی" },
-                { value: 1, label: "درهم کشیده و اخم‌آلود (۱)", desc: "انقباض عضلات صورت، اخم کردن، به هم فشردن چشم‌ها یا لب‌ها" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۲. گریه (Cry)"
-              description="بررسی وضعیت صوتی نوزاد"
-              current={nips.cry}
-              onSelect={(v) => handleNipsChange('cry', v)}
-              options={[
-                { value: 0, label: "بدون گریه (۰)", desc: "آرام است، گریه یا صدای ناله شنیده نمی‌شود" },
-                { value: 1, label: "ناله خفیف یا متناوب (۱)", desc: "گریه خفیف، ناله‌های دوره‌ای، با محرک‌های ملایم آرام می‌شود" },
-                { value: 2, label: "گریه شدید و مداوم (۲)", desc: "گریه شدید و بلند با فرکانس بالا، جیغ کشیدن، به سختی تسکین می‌یابد" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۳. الگوی تنفس (Breathing Patterns)"
-              description="تغییرات تنفسی نسبت به وضعیت پایه"
-              current={nips.breathingPattern}
-              onSelect={(v) => handleNipsChange('breathingPattern', v)}
-              options={[
-                { value: 0, label: "طبیعی و آرام (۰)", desc: "تنفس منظم، بدون تلاش تنفسی اضافی یا نامنظمی" },
-                { value: 1, label: "تغییر یافته یا نامنظم (۱)", desc: "تنفس تند، حبس نفس، غلغلک گلو، سرفه یا تندنفسی سطحی" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۴. حرکات دست‌ها (Arms)"
-              description="بررسی تنش عضلانی در اندام فوقانی"
-              current={nips.arms}
-              onSelect={(v) => handleNipsChange('arms', v)}
-              options={[
-                { value: 0, label: "آرام و شل (۰)", desc: "عدم وجود سفت‌شدگی عضلانی، حرکات راندوم و طبیعی دست‌ها" },
-                { value: 1, label: "خم یا کشیده / سفت (۱)", desc: "دست‌ها سفت شده، به شدت باز یا کاملاً در سینه جمع شده‌اند" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۵. حرکات پاها (Legs)"
-              description="بررسی تنش عضلانی در اندام تحتانی"
-              current={nips.legs}
-              onSelect={(v) => handleNipsChange('legs', v)}
-              options={[
-                { value: 0, label: "آرام و شل (۰)", desc: "پاها شل و راحت، حرکات متناوب و رها" },
-                { value: 1, label: "خم یا کشیده / سفت (۱)", desc: "سفت و منقبض بودن پاها، لگد زدن‌های تهاجمی یا کشش شدید زانوها" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۶. سطح هوشیاری (State of Arousal)"
-              description="میزان برانگیختگی و ناآرامی نوزاد"
-              current={nips.arousalState}
-              onSelect={(v) => handleNipsChange('arousalState', v)}
-              options={[
-                { value: 0, label: "خواب یا بیدار آرام (۰)", desc: "نوزاد به آرامی خوابیده یا بیدار و هشیار بدون اضطراب است" },
-                { value: 1, label: "ناآرام و تحریک‌پذیر (۱)", desc: "تلاش مداوم برای تقلا، به شدت بی‌قرار، بدخلقی مکرر" }
-              ]}
-            />
-          </div>
+      {tool.items.map(it => (
+        <AssessmentRow key={it.key} title={it.title} description={it.description}
+          options={it.options.map((label, v) => ({ label, value: v }))}
+          currentValue={scores[it.key]}
+          onSelect={(v) => { setScores(s => ({ ...s, [it.key]: v })); setTouched(true); }} />
+      ))}
+      <div className={`${sevColor[severity]} rounded-3xl p-6 flex items-center justify-between text-white shadow-lg`}>
+        <div>
+          <p className="text-sm font-bold opacity-90">مجموع امتیاز {tool.id} (۰ تا {tool.max})</p>
+          <p className="text-2xl font-black">{tool.interpret(total)}</p>
+          <p className="text-xs font-bold opacity-90 mt-1">{tool.bands}</p>
         </div>
-      )}
-
-      {activeTab === 'CRIES' && (
-        <div className="space-y-12 premium-card p-8 md:p-10 border-indigo-500/20">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-white/5">
-            <div className="text-right space-y-2">
-              <h3 className="text-3xl font-black text-white">مقیاس سنجش درد بعد از عمل (CRIES)</h3>
-              <p className="text-indigo-400 text-sm font-bold italic">مناسب برای ارزیابی کارهای جراحی و پس از جراحی در نوزادان</p>
-            </div>
-            <div className="bg-indigo-950 px-6 py-4 rounded-3xl border border-indigo-500/30 text-center min-w-[120px]">
-              <span className="text-[10px] text-indigo-300 block font-bold mb-1">امتیاز کل CRIES</span>
-              <span className="text-4xl font-black text-white tabular-nums">{criesTotal}</span>
-              <span className="text-xs text-slate-400 block mt-1">از ۱۰ امتیاز</span>
-            </div>
-          </div>
-
-          <div className="grid gap-8">
-            <RadioGroup
-              title="۱. گریه (Crying)"
-              description="خصوصیات گریه نوزاد پس از عمل"
-              current={cries.crying}
-              onSelect={(v) => handleCriesChange('crying', v)}
-              options={[
-                { value: 0, label: "گریه نمی‌کند (۰)", desc: "نوزاد کاملاً ساکت است یا صدای گریه ندارد" },
-                { value: 1, label: "گریه با فرکانس بالا ولی قابل آرام کردن (۱)", desc: "گریه شدید اما با در آغوش گرفتن یا پستانک موقتاً آرام می‌شود" },
-                { value: 2, label: "گریه متناوب/مداوم غیرقابل تسکین (۲)", desc: "گریه بسیار شدید، نوزاد با هیچ روشی آرام نمی‌گیرد" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۲. نیاز به اکسیژن کمکی (Requires O2)"
-              description="میزان اکسیژن مورد نیاز جهت نگهداشت SaO2 بالای ۹۵٪"
-              current={cries.requiresO2}
-              onSelect={(v) => handleCriesChange('requiresO2', v)}
-              options={[
-                { value: 0, label: "بدون نیاز به اکسیژن (۰)", desc: "در هوای اتاق اشباع بالای ۹۵٪ دارد" },
-                { value: 1, label: "نیاز به FiO2 کمتر از ۳۰٪ (۱)", desc: "نیاز به اکسیژن با درصد پایین جهت حفظ اکسیژن خون" },
-                { value: 2, label: "نیاز به FiO2 بیشتر از ۳۰٪ (۲)", desc: "نیاز به حجم اکسیژن بالاتر یا مانیتورینگ حمایتی قوی‌تر" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۳. تغییر علائم حیاتی (Increased Vital Signs)"
-              description="بررسی افزایش ضربان قلب و فشار خون شریانی نسبت به وضعیت پایه قبل عمل"
-              current={cries.increasedVitals}
-              onSelect={(v) => handleCriesChange('increasedVitals', v)}
-              options={[
-                { value: 0, label: "طبیعی یا زیر میزان پایه (۰)", desc: "بدون نوسان یا افزایش نگران‌کننده علائم حیاتی" },
-                { value: 1, label: "افزایش تا ۲۰٪ نسبت به پایه (۱)", desc: "علائم حیاتی کمی بالاتر از حد پایه نوزاد است" },
-                { value: 2, label: "افزایش بالای ۲۰٪ یا نوسانات شدید (۲)", desc: "تاکی‌کاردی یا فشار خون بسیار بالاتر از حد روتین نوزاد" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۴. حالت چهره (Expression)"
-              description="وجود انقباضات چشمی و دهانی"
-              current={cries.expression}
-              onSelect={(v) => handleCriesChange('expression', v)}
-              options={[
-                { value: 0, label: "چهره آرام و رها (۰)", desc: "بدون کوچک‌ترین اخم یا گرفتگی ماهیچه‌ها" },
-                { value: 1, label: "اخم خفیف یا متوسط (۱)", desc: "تغییر جزیی چهره، به هم فشردن لب‌ها" },
-                { value: 2, label: "اخم عمیق به همراه ناله‌های صوتی (۲)", desc: "اخم شدید، چروک عمیق پیشانی و شیار لب و بینی" }
-              ]}
-            />
-
-            <RadioGroup
-              title="۵. بی‌خوابی (Sleeplessness)"
-              description="میزان خواب نوزاد در یک ساعت گذشته"
-              current={cries.sleeplessness}
-              onSelect={(v) => handleCriesChange('sleeplessness', v)}
-              options={[
-                { value: 0, label: "خواب کامل و پیوسته (۰)", desc: "نوزاد در طول ساعت گذشته به راحتی خوابیده است" },
-                { value: 1, label: "بیدار شدن‌های مکرر و متناوب (۱)", desc: "فواصل کوتاه بیدار شده ولی دوباره به خواب رفته است" },
-                { value: 2, label: "به طور مداوم بیدار بوده است (۲)", desc: "نوزاد در طول کل ساعت گذشته به دلیل درد نتوانسته بخوابد" }
-              ]}
-            />
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'NON_PHARM' && (
-        <div className="space-y-8 animate-in text-right">
-          <div className="bg-indigo-950/40 p-8 rounded-[2.5rem] border border-indigo-500/20">
-            <h3 className="text-2xl font-black text-indigo-300 mb-4">دستورالعمل جامع مداخلات غیردارویی کنترل درد نوزاد</h3>
-            <p className="text-slate-300 text-sm leading-relaxed mb-6">
-              بر اساس ابلاغیه کشوری وزارت بهداشت در خصوص <b>مراقبت‌های پرستاری در مدیریت درد نوزادان بستری</b>، استفاده از تکنیک‌های زیر در حین پروسجرهای تهاجمی (مانند نمونه‌گیری پاشنه پا، رگ‌گیری، پونکسیون لومبار و تزریق واکسن) الزامی است. این روش‌ها با اثر بر سیستم‌های حسی و ترشح اندورفین طبیعی، درک نوزاد از محرک‌های دردناک را به طور چشمگیری کاهش می‌دهند.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <GuidelineCard
-                icon="🤱"
-                title="تغذیه با شیر مادر (Breastfeeding)"
-                description="قوی‌ترین و اثربخش‌ترین مسکن طبیعی برای نوزادان است. تغذیه با شیر مادر باید از ۲ تا ۵ دقیقه قبل از شروع مداخله دردناک آغاز شود و در تمام مدت انجام کار ادامه یابد تا ترشح اندورفین و هورمون اکسی‌توسین به اوج برسد."
-              />
-              <GuidelineCard
-                icon="🍭"
-                title="تجویز ساکارز ۲۴٪ یا آب قند"
-                description="تجویز چند قطره (۰.۱ الی ۱ میلی‌لیتر) از محلول آب قند یا ساکارز ۲۴٪ روی قسمت قدامی زبان نوزاد دقیقاً ۲ دقیقه قبل از مداخله دردناک. اثر این ماده تا ۵ الی ۱۰ دقیقه برای بلوک حس درد پایدار است."
-              />
-              <GuidelineCard
-                icon="👶"
-                title="مکیدن غیرمغذی (NNS)"
-                description="استفاده از پستانک تمیز و مناسب نوزاد به تنهایی یا همزمان با تجویز چند قطره ساکارز ۲۴٪. تحریک فیزیکی و مکانیکی گیرنده‌های دهانی باعث مهار عبور پیام‌های درد از نخاع می‌گردد."
-              />
-              <GuidelineCard
-                icon="🦘"
-                title="مراقبت آغوشی مادر (KMC)"
-                description="تماس پوست به پوست نوزاد با سینه مادر (یا پدر) حداقل ۱۰ تا ۱۵ دقیقه پیش از پروسجر تهاجمی. کاهش ضربان قلب، ثبات تنفس و ترشح هورمون‌های آرام‌بخش از نتایج مستقیم این مراقبت مهربانانه است."
-              />
-              <GuidelineCard
-                icon="🩹"
-                title="قنداق کردن و پوزیشن فشرده (Swaddling)"
-                description="جمع نگهداشتن دست‌ها و پاهای نوزاد نزدیک به خط وسط بدن (مشابه حالت جنینی در رحم) و پوشش دادن نوزاد با پتو یا قنداق ملایم. این تکنیک مانع از آشفتگی حرکتی و کاهش خستگی نوزاد می‌گردد."
-              />
-              <GuidelineCard
-                icon="🤫"
-                title="اصلاحات محرک محیطی"
-                description="خوشه‌بندی خدمات (Clustering Care) جهت به حداقل رساندن دفعات لمس نوزاد، تنظیم شدت نور انکوباتور با انداختن کاور پارچه‌ای، مهار آلارم‌های صوتی تجهیزات اطراف و صحبت با صدای بسیار آرام."
-              />
-            </div>
-          </div>
-
-          <div className="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5 space-y-6">
-            <h4 className="text-xl font-black text-rose-300">💡 مراقبت‌های دارویی (دوزهای روتین نوزادان بستری):</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-slate-300 text-right">
-                <thead>
-                  <tr className="border-b border-white/10 text-indigo-300 font-black">
-                    <th className="pb-3 pl-4">نام دارو</th>
-                    <th className="pb-3 pl-4">دوزاژ استاندارد</th>
-                    <th className="pb-3 pl-4">فواصل زمانی تجویز</th>
-                    <th className="pb-3">ملاحظات و مراقبت‌های پرستاری</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 font-bold">
-                  <tr>
-                    <td className="py-3 pl-4 text-white">استامینوفن (Acetaminophen)</td>
-                    <td className="py-3 pl-4">10 - 15 mg/kg (خوراکی یا شیاف)</td>
-                    <td className="py-3 pl-4">هر ۶ تا ۸ ساعت</td>
-                    <td className="py-3">حداکثر دوز روزانه در نوزاد ترم ۴۰ میلی‌گرم بر کیلوگرم و در نوزاد نارس ۳۰ میلی‌گرم بر کیلوگرم است. پایش عملکرد کبد در مصرف طولانی‌مدت ضروری است.</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 pl-4 text-white">فنتانیل (Fentanyl)</td>
-                    <td className="py-3 pl-4">0.5 - 2 mcg/kg/hour (انفوزیون وریدی)</td>
-                    <td className="py-3 pl-4">مداوم (IV infusion)</td>
-                    <td className="py-3">حتماً تحت مانیتورینگ کامل قلبی‌ریوی استفاده شود. تزریق سریع بولوس می‌تواند منجر به سفتی دیواره قفسه سینه (Chest wall rigidity) شود.</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 pl-4 text-white">مورفین (Morphine)</td>
-                    <td className="py-3 pl-4">0.05 - 0.1 mg/kg (وریدی آهسته)</td>
-                    <td className="py-3 pl-4">هر ۴ تا ۶ ساعت</td>
-                    <td className="py-3">جهت دردهای شدید بعد عمل یا حین تهویه مکانیکی. مانیتورینگ دقیق وضعیت تنفس و آمادگی کامل داروی نالوکسان به عنوان آنتی‌دوت الزامی است.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+        <div className="bg-white text-[#ca7f3c] border-2 border-[#c69d5b] rounded-2xl px-6 py-2 text-4xl font-black tabular-nums">{total}</div>
+      </div>
+      {tool.note && <p className="text-xs font-bold text-[#855f20] leading-relaxed">{tool.note}</p>}
+      {!touched && <p className="text-center text-xs font-bold text-[#855f20]">برای نمایش پلن درمانی، حداقل یک گزینه را انتخاب کنید.</p>}
     </div>
   );
 };
 
-const RadioGroup = ({ title, description, current, onSelect, options }: any) => (
-  <div className="space-y-4 text-right">
-    <div className="flex items-center gap-3">
-      <div className="w-1.5 h-6 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/40"></div>
-      <div>
-        <h4 className="text-lg font-black text-slate-100">{title}</h4>
-        <p className="text-xs text-slate-400 mt-0.5">{description}</p>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {options.map((opt: any) => (
-        <button
-          key={opt.value}
-          onClick={() => onSelect(opt.value)}
-          className={`p-4 rounded-2xl border-2 transition-all duration-300 text-right relative overflow-hidden ${
-            current === opt.value
-              ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg -translate-y-1'
-              : 'bg-white/5 border-white/5 text-slate-400 hover:border-indigo-400/30'
-          }`}
-        >
-          <div className="text-[9px] font-black mb-1 opacity-40 uppercase tracking-widest">
-            {current === opt.value ? '✓ انتخاب شده' : `انتخاب امتیاز ۰${opt.value}`}
-          </div>
-          <p className="text-base font-bold leading-tight">{opt.label}</p>
-          <p className="text-xs opacity-60 mt-1">{opt.desc}</p>
-        </button>
+/* --------------------------- تب‌های مرجع --------------------------- */
+
+const NON_PHARM: [string, string][] = [
+  ['مکیدن غیرمغذی (NNS)', 'روشی ساده و پرکاربرد؛ معمولاً همراه با شیر مادر یا سوکروز ارائه می‌شود. بر پایهٔ تئوری کنترل دریچه‌ای درد، ارسال پیام‌های درد به مغز را کاهش می‌دهد.'],
+  ['سوکروز', 'نوزاد ترم ۲ میلی‌لیتر؛ نوزاد پره‌ترم ۰٫۵ تا ۱ میلی‌لیتر، دو دقیقه قبل از رویهٔ دردناک مانند خونگیری یا کاتترگذاری (در صورت نبود منع مصرف خوراکی).'],
+  ['شیر مادر', 'طعم و بوی شیر مادر می‌تواند به کاهش درد کمک کند.'],
+  ['مراقبت آغوشی مادرانه (KMC)', 'تماس پوستی مادر و نوزاد باعث کاهش درد و اضطراب نوزاد می‌شود.'],
+  ['قنداق‌کردن', 'به‌ویژه در نوزادانی که در معرض تحریکات محیطی‌اند، احساس آرامش ایجاد می‌کند؛ در نوزاد مبتلا به سندروم محرومیت (متولد از مادر معتاد) توصیه می‌شود.'],
+  ['ماساژ', 'ماساژ ملایم ناحیهٔ خونگیری/رگ‌گیری حداقل ۵ دقیقه قبل از انجام رویه.'],
+  ['مدیریت محیط فیزیکی', 'کاهش نور و سر و صدا، کاهش دستکاری نوزاد و مدیریت دوره‌های خواب و بیداری؛ پرهیز از محرک‌های تنش‌زا (شنوایی، بینایی، لامسه، تعادلی).'],
+  ['سایر روش‌ها', 'لمس‌درمانی، پوزیشن‌دادن، شیردهی از سینهٔ مادر و تکان‌دادن گهواره‌ای نیز از روش‌های غیردارویی مؤثرند.'],
+];
+
+const NonPharmTab: React.FC = () => (
+  <div className="premium-card p-6 sm:p-10 space-y-6">
+    <h3 className="text-2xl font-black text-[#062a2e] text-center">روش‌های غیردارویی تسکین درد نوزاد</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-bold leading-relaxed">
+      {NON_PHARM.map(([t, d]) => (
+        <div key={t} className="p-4 rounded-2xl bg-white border-2 border-[#d8cfbe]">
+          <p className="font-black text-[#096067] mb-1">{t}</p><p className="text-[#1e293b]">{d}</p>
+        </div>
       ))}
+    </div>
+    <div className="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-sm font-bold leading-relaxed space-y-1">
+      <p>• تعداد دفعات و زمان انجام اقدامات دردناک تا حد ممکن کاهش یابد.</p>
+      <p>• در صورت امکان، خونگیری‌ها به روش خونگیری از پاشنهٔ پا انجام شود.</p>
+      <p>• برای کاهش تحریکات دردناک حین کاتترگذاری از راهنمای بالینی همان کاتتر استفاده شود.</p>
+      <p>• درد حاد در حین اقدامات دردناک تسکین داده شود و پس از جراحی حتماً مسکن مناسب تجویز گردد.</p>
     </div>
   </div>
 );
 
-const GuidelineCard = ({ icon, title, description }: any) => (
-  <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex gap-4 text-right items-start">
-    <span className="text-4xl p-2 bg-white/5 rounded-2xl shrink-0">{icon}</span>
-    <div className="space-y-2">
-      <h4 className="text-lg font-black text-indigo-300">{title}</h4>
-      <p className="text-slate-300 text-xs leading-relaxed">{description}</p>
+const Mark: React.FC<{ on: boolean }> = ({ on }) => (
+  <span className={on ? 'text-emerald-600 text-xl font-black' : 'text-slate-300'}>{on ? '✔' : '—'}</span>
+);
+
+const ProceduresTab: React.FC = () => (
+  <div className="premium-card p-6 sm:p-10 space-y-6">
+    <h3 className="text-2xl font-black text-[#062a2e] text-center">اقدام تسکینی مناسب هر رویهٔ دردناک در بخش نوزادان</h3>
+    <div className="overflow-x-auto rounded-2xl border-2 border-[#d8cfbe] bg-white">
+      <table className="w-full text-sm font-bold text-center">
+        <thead className="bg-[#096067] text-white">
+          <tr>
+            <th className="p-3 text-right">رویهٔ دردناک</th>
+            <th className="p-3">شیر مادر / مکیدن غیرمغذی</th>
+            <th className="p-3">سوکروز</th>
+            <th className="p-3">روش دارویی</th>
+            <th className="p-3">مراقبت کانگورویی</th>
+          </tr>
+        </thead>
+        <tbody>
+          {NEONATAL_PROCEDURES.map((r, i) => (
+            <tr key={r.name} className={i % 2 ? 'bg-[#fbf9f5]' : ''}>
+              <td className="p-3 text-right text-[#062a2e]">{r.name}</td>
+              <td className="p-3"><Mark on={r.milkNns} /></td>
+              <td className="p-3"><Mark on={r.sucrose} /></td>
+              <td className="p-3"><Mark on={r.pharm} /></td>
+              <td className="p-3"><Mark on={r.kmc} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+    <p className="text-xs font-bold text-[#475569]">منبع: جدول ۱ ابلاغیهٔ «مراقبت‌های پرستاری در مدیریت درد نوزادان بستری در بیمارستان» (بهار ۱۴۰۴). روش دارویی فقط با تجویز پزشک.</p>
   </div>
 );
+
+const DrugsTab: React.FC = () => (
+  <div className="premium-card p-6 sm:p-10 space-y-6">
+    <h3 className="text-2xl font-black text-[#062a2e] text-center">داروهای تسکین درد نوزادان</h3>
+    <div className="space-y-3">
+      {NEONATAL_DRUGS.map((d, i) => (
+        <div key={i} className={`p-5 rounded-2xl bg-white border-2 ${d.source === 'extra' ? 'border-amber-300' : 'border-[#d8cfbe]'} grid grid-cols-1 md:grid-cols-4 gap-3 text-sm font-bold leading-relaxed`}>
+          <div><span className="text-lg font-black text-[#096067]">{d.name}</span><span className="block text-xs text-[#855f20]">{d.route}</span></div>
+          <div className="font-black text-[#062a2e]" dir="auto">{d.dose}</div>
+          <div className="md:col-span-2">
+            {d.note}
+            {d.source === 'extra' && (
+              <span className="mr-2 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                مرجع تکمیلی — نیاز به تأیید پزشک/داروساز
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs font-bold text-[#475569]">تمام روش‌های دارویی باید با تجویز پزشک متخصص انجام شود. استفاده از میدازولام به علت تأثیر منفی بر رشد و تکامل مغز نوزاد محدود گردد.</p>
+  </div>
+);
+
+/* --------------------------- کامپوننت اصلی --------------------------- */
+
+const NeonatalAssessment: React.FC<Props> = ({ onAssess }) => {
+  const [tab, setTab] = useState<'assess' | 'nonpharm' | 'procedures' | 'drugs'>('assess');
+  const [toolId, setToolId] = useState<ToolId | null>(null);
+  const tool = TOOLS.find(t => t.id === toolId) || null;
+
+  useEffect(() => {
+    if (!tool) onAssess(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-2 p-1.5 bg-[#ede6d8] rounded-2xl max-w-3xl mx-auto">
+        {([['assess', '📋 ارزیابی درد'], ['nonpharm', '🤱 غیردارویی'], ['procedures', '🩺 رویه‌ها'], ['drugs', '💊 داروها']] as const).map(([k, label]) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={`flex-1 min-w-[110px] py-3 rounded-xl text-sm font-black cursor-pointer transition-all ${tab === k ? 'bg-[#096067] text-white shadow' : 'text-[#062a2e]'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className={tab === 'assess' ? 'space-y-6' : 'hidden'}>
+        <div className="premium-card p-5 text-center space-y-1">
+          <p className="font-black text-[#062a2e]">آیا نوزاد آرام است؟</p>
+          <p className="text-sm font-bold text-[#475569]">
+            اگر آرام است: ارزیابی دوره‌ای درد همراه علائم حیاتی (هر ۲ تا ۴ ساعت)؛ در صورت مشاهدهٔ هر تغییر، مجدداً ارزیابی شود.
+            اگر آرام نیست: از ابزار ارزیابی مخصوص نوزاد بر اساس شرایط او استفاده کنید.
+          </p>
+        </div>
+
+        {!tool ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {TOOLS.map(t => (
+              <button key={t.id} onClick={() => setToolId(t.id)}
+                className="text-right p-6 rounded-3xl bg-white/90 border-2 border-[#c69d5b]/30 hover:border-[#096067] hover:-translate-y-1 transition-all shadow-md cursor-pointer space-y-2">
+                <h4 className="text-4xl font-black text-[#096067]">{t.id}</h4>
+                <p className="font-black text-[#062a2e]">{t.shortTitle}</p>
+                <p className="text-xs font-bold text-[#475569] leading-relaxed">{t.use}</p>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <button onClick={() => setToolId(null)} className="px-4 py-2 rounded-xl bg-white border-2 border-[#c69d5b]/40 font-black text-sm cursor-pointer">
+              ↩ انتخاب ابزار دیگر
+            </button>
+            <ScoredTool key={tool.id} tool={tool} onAssess={onAssess} />
+          </div>
+        )}
+      </div>
+
+      {tab === 'nonpharm' && <NonPharmTab />}
+      {tab === 'procedures' && <ProceduresTab />}
+      {tab === 'drugs' && <DrugsTab />}
+    </div>
+  );
+};
 
 export default NeonatalAssessment;

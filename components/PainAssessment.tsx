@@ -1,162 +1,278 @@
-
-import React, { useState } from 'react';
-import { PatientStatus, PainSeverity, AssessmentResult, BPSScores } from '../types';
+import React, { useEffect, useState } from 'react';
+import { AssessmentResult, PainSeverity, PatientStatus } from '../types';
+import {
+  VAS_FACES, BPS_FACE_IMAGES, BPS_ARM_IMAGES,
+  adultNumericSeverity, bpsSeverity, severityLabel,
+} from './painData';
 
 interface Props {
   status: PatientStatus;
-  onAssess: (result: AssessmentResult) => void;
+  onAssess: (result: AssessmentResult | null) => void;
 }
 
-const PainAssessment: React.FC<Props> = ({ status, onAssess }) => {
-  const [vasScore, setVasScore] = useState<number>(0);
-  const [bps, setBps] = useState<BPSScores>({
-    facial: 1,
-    upperLimbs: 1,
-    ventilation: 1,
-    vocalization: 1,
-    isIntubated: true
-  });
+const sevColor: Record<PainSeverity, string> = {
+  [PainSeverity.NONE]: 'bg-emerald-600',
+  [PainSeverity.MILD]: 'bg-amber-500',
+  [PainSeverity.MODERATE]: 'bg-orange-600',
+  [PainSeverity.SEVERE]: 'bg-rose-700',
+  [PainSeverity.VERY_SEVERE]: 'bg-red-800',
+};
 
-  const calculateSeverity = (score: number, tool: string) => {
-    if (tool === 'VAS') {
-      if (score === 0) return PainSeverity.NONE;
-      if (score <= 3) return PainSeverity.MILD;
-      if (score <= 6) return PainSeverity.MODERATE;
-      return PainSeverity.SEVERE;
-    } else {
-      if (score === 3) return PainSeverity.NONE;
-      if (score <= 5) return PainSeverity.MILD;
-      if (score <= 8) return PainSeverity.MODERATE;
-      return PainSeverity.SEVERE;
-    }
-  };
+const ScoreBanner: React.FC<{ title: string; score: number | string; severity: PainSeverity; extra?: string }> = ({ title, score, severity, extra }) => (
+  <div className={`${sevColor[severity]} rounded-3xl p-6 flex items-center justify-between text-white shadow-lg`}>
+    <div>
+      <p className="text-sm font-bold opacity-90">{title}</p>
+      <p className="text-2xl font-black">{severityLabel[severity]}</p>
+      {extra && <p className="text-xs font-bold opacity-90 mt-1">{extra}</p>}
+    </div>
+    <div className="bg-white text-[#ca7f3c] border-2 border-[#c69d5b] rounded-2xl px-6 py-2 text-4xl font-black tabular-nums">{score}</div>
+  </div>
+);
 
-  const handleVasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
-    setVasScore(val);
-    onAssess({ score: val, severity: calculateSeverity(val, 'VAS'), toolUsed: 'VAS', timestamp: new Date() });
-  };
+/* ----------------------------- VAS / چهره‌ها ----------------------------- */
 
-  const handleBpsChange = (category: keyof BPSScores, value: number | boolean) => {
-    const newBps = { ...bps, [category]: value } as BPSScores;
-    setBps(newBps);
-    const total = newBps.facial + newBps.upperLimbs + (newBps.isIntubated ? newBps.ventilation : newBps.vocalization);
-    onAssess({ score: total, severity: calculateSeverity(total, 'BPS'), toolUsed: 'BPS', timestamp: new Date() });
-  };
+const ConsciousPain: React.FC<Props> = ({ onAssess }) => {
+  const [mode, setMode] = useState<'numeric' | 'faces'>('numeric');
+  const [value, setValue] = useState<number | null>(null);
 
-  if (status === PatientStatus.PARALYZED) {
-    return (
-      <div className="premium-card p-10 text-center space-y-8 border-indigo-500/20">
-        <div className="w-24 h-24 bg-indigo-500/20 rounded-3xl flex items-center justify-center mx-auto shadow-2xl border border-indigo-400/30">
-          <span className="text-5xl animate-pulse">📊</span>
-        </div>
-        <div className="space-y-4">
-          <h3 className="text-3xl font-black text-white">پایش فیزیولوژیک (همودینامیک)</h3>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto font-medium">
-            در بیماران تحت پارالیز عضلانی، ارزیابی درد بر اساس افزایش علایم حیاتی (بیش از ۲۰٪ نسبت به پایه) انجام می‌شود.
-          </p>
-        </div>
-        <div className="bg-indigo-600/20 p-6 rounded-2xl border border-indigo-500/30 text-indigo-100 text-lg font-black shadow-inner">
-          ⚠️ پایش مداوم ضربان قلب و فشار خون الزامی است
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (value === null) { onAssess(null); return; }
+    const severity = adultNumericSeverity(value);
+    onAssess({
+      score: value,
+      severity,
+      toolUsed: mode === 'faces' ? 'FACES' : 'VAS',
+      interpretation: `${severityLabel[severity]} (${mode === 'faces' ? 'مقیاس چهره‌ای' : 'VAS/NRS'} = ${value})`,
+      timestamp: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, mode]);
+
+  const changeMode = (m: 'numeric' | 'faces') => { setMode(m); setValue(null); };
+  const severity = value === null ? null : adultNumericSeverity(value);
 
   return (
-    <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-      {status === PatientStatus.CONSCIOUS ? (
-        <div className="space-y-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-right space-y-2">
-              <h3 className="text-3xl font-black text-white tracking-tight">مقیاس دیداری درد (VAS)</h3>
-              <p className="text-indigo-400 text-base font-bold italic tracking-wide">پیوست ۱ فایل ابلاغی: گزارش مستقیم بیمار</p>
-            </div>
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all"></div>
-              <div className="relative w-32 h-32 bg-indigo-600 rounded-[2.5rem] flex items-center justify-center text-6xl font-black text-white shadow-[0_15px_35px_rgba(79,70,229,0.5)] border-4 border-white/10 tabular-nums">
-                {vasScore}
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-8 bg-white/5 p-8 rounded-3xl border border-white/5">
-            <input type="range" min="0" max="10" value={vasScore} onChange={handleVasChange} className="w-full h-3" />
-            <div className="flex justify-between px-2 text-[10px] font-black text-indigo-300 uppercase tracking-widest">
-              <span>بدون درد (۰)</span>
-              <span>درد شدید (۱۰)</span>
-            </div>
-          </div>
+    <div className="premium-card p-6 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">ارزیابی درد بیمار هوشیار</h3>
+        <p className="text-[#096067] font-bold">درد به‌عنوان پنجمین علامت حیاتی همراه با علائم حیاتی در هر شیفت ارزیابی شود.</p>
+      </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <PainFace icon="😊" label="بدون درد" active={vasScore === 0} />
-            <PainFace icon="😐" label="خفیف" active={vasScore > 0 && vasScore <= 3} />
-            <PainFace icon="😟" label="متوسط" active={vasScore > 3 && vasScore <= 6} />
-            <PainFace icon="😫" label="شدید" active={vasScore > 6} />
+      <div className="flex gap-2 p-1.5 bg-[#ede6d8] rounded-2xl max-w-md mx-auto">
+        {([['numeric', '🔢 مقیاس عددی (VAS/NRS)'], ['faces', '🙂 مقیاس چهره‌ای']] as const).map(([k, label]) => (
+          <button key={k} onClick={() => changeMode(k)}
+            className={`flex-1 py-3 rounded-xl text-sm font-black cursor-pointer transition-all ${mode === k ? 'bg-[#096067] text-white shadow' : 'text-[#062a2e]'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === 'numeric' ? (
+        <div className="space-y-6">
+          <p className="text-center text-[#475569] font-bold">از بیمار بخواهید شدت درد خود را از ۰ (بدون درد) تا ۱۰ (بدترین درد ممکن) بیان کند.</p>
+          <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
+            {Array.from({ length: 11 }, (_, i) => (
+              <button key={i} onClick={() => setValue(i)}
+                className={`py-4 rounded-2xl text-xl font-black border-2 cursor-pointer transition-all ${value === i ? 'bg-[#096067] text-white border-[#c69d5b] -translate-y-1 shadow-lg' : 'bg-white border-[#d8cfbe] text-[#062a2e] hover:border-[#096067]'}`}>
+                {i}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-5 text-center text-[11px] sm:text-xs font-black text-[#475569] gap-1">
+            <span className="bg-emerald-100 rounded-lg py-1">۰ فاقد درد</span>
+            <span className="bg-amber-100 rounded-lg py-1">۱–۳ خفیف</span>
+            <span className="bg-orange-100 rounded-lg py-1">۴–۶ متوسط</span>
+            <span className="bg-rose-100 rounded-lg py-1">۷–۸ شدید</span>
+            <span className="bg-red-100 rounded-lg py-1">۹–۱۰ غیرقابل تحمل</span>
           </div>
         </div>
       ) : (
-        <div className="space-y-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 pb-8 border-b border-white/5">
-            <div className="text-right space-y-2">
-              <h3 className="text-3xl font-black text-white">مقیاس رفتاری درد (BPS)</h3>
-              <p className="text-indigo-400 text-base font-bold italic">پیوست ۲: ارزیابی تخصصی در بیماران ICU</p>
-            </div>
-            <div className="bg-white/5 p-2 rounded-2xl flex gap-2 border border-white/10 shadow-inner">
-              <button onClick={() => handleBpsChange('isIntubated', true)} className={`px-8 py-3 rounded-xl text-xs font-black transition-all ${bps.isIntubated ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-500 hover:text-slate-300'}`}>بیمار اینتوبه</button>
-              <button onClick={() => handleBpsChange('isIntubated', false)} className={`px-8 py-3 rounded-xl text-xs font-black transition-all ${!bps.isIntubated ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-500 hover:text-slate-300'}`}>غیر اینتوبه</button>
-            </div>
-          </div>
-
-          <div className="grid gap-12">
-            <BPSRow title="۱. حالات چهره" current={bps.facial} onSelect={(v) => handleBpsChange('facial', v)} options={["آرام (۱)", "نسبتاً درهم کشیده (۲)", "کاملاً درهم کشیده (۳)", "درهم رفتن خصمانه (۴)"]} />
-            <BPSRow title="۲. حرکات اندام فوقانی" current={bps.upperLimbs} onSelect={(v) => handleBpsChange('upperLimbs', v)} options={["بی‌حرکت (۱)", "کمی خم می‌کند (۲)", "کاملاً خم می‌کند (۳)", "کشیدن و مقاومت (۴)"]} />
-            <BPSRow 
-              title={bps.isIntubated ? "۳. هماهنگی با ونتیلاتور" : "۳. وضعیت کلامی"} 
-              current={bps.isIntubated ? bps.ventilation : bps.vocalization} 
-              onSelect={(v) => handleBpsChange(bps.isIntubated ? 'ventilation' : 'vocalization', v)} 
-              options={bps.isIntubated ? ["تحمل کامل (۱)", "سرفه گذرا (۲)", "جنگ با دستگاه (۳)", "عدم تحمل (۴)"] : ["صحبت عادی (۱)", "ناله جزیی (۲)", "ناله مکرر (۳)", "فریاد و ضجه (۴)"]} 
-            />
-          </div>
-
-          <div className="p-10 bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[2.5rem] flex items-center justify-between text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
-            <div>
-              <p className="text-indigo-200 font-black text-[10px] mb-2 uppercase tracking-[0.4em]">Final Behavioral Score</p>
-              <h4 className="text-3xl font-black">امتیاز نهایی ارزیابی</h4>
-            </div>
-            <div className="text-7xl font-black text-white tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-              {bps.facial + bps.upperLimbs + (bps.isIntubated ? bps.ventilation : bps.vocalization)}
-            </div>
+        <div className="space-y-6">
+          <p className="text-center text-[#475569] font-bold">
+            برای بیمارانی که قادر به بیان عددی درد نیستند (مثلاً سالمند، کم‌سواد یا مشکل ارتباطی): چهره‌ای را که بیشتر شبیه حال او است انتخاب کند.
+          </p>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {VAS_FACES.map(f => (
+              <button key={f.value} onClick={() => setValue(f.value)}
+                className={`p-2 rounded-3xl border-4 flex flex-col items-center gap-1 cursor-pointer transition-all ${value === f.value ? 'border-[#096067] bg-[#096067]/10 -translate-y-1 shadow-lg' : 'border-transparent bg-white hover:border-[#c69d5b]'}`}>
+                <img src={f.img} alt={f.fa} className="w-full max-w-[110px] aspect-square object-contain" />
+                <span className="text-2xl font-black text-[#062a2e]">{f.value}</span>
+                <span className="text-xs font-bold text-[#475569] text-center">{f.fa}</span>
+              </button>
+            ))}
           </div>
         </div>
+      )}
+
+      {severity && value !== null && (
+        <ScoreBanner title={mode === 'faces' ? 'نتیجهٔ مقیاس چهره‌ای' : 'نتیجهٔ مقیاس VAS/NRS'} score={value} severity={severity} />
       )}
     </div>
   );
 };
 
-const PainFace = ({ icon, label, active }: any) => (
-  <div className={`p-6 rounded-3xl border-2 transition-all duration-500 flex flex-col items-center group ${active ? 'bg-indigo-600 border-transparent shadow-xl scale-105' : 'bg-white/5 border-white/5 opacity-40 hover:opacity-60 grayscale hover:grayscale-0'}`}>
-    <span className="text-4xl mb-4 group-hover:scale-110 transition-transform">{icon}</span>
-    <span className={`text-sm font-black ${active ? 'text-white' : 'text-slate-400'}`}>{label}</span>
-  </div>
+/* ----------------------------- BPS ----------------------------- */
+
+const PhotoOption: React.FC<{
+  selected: boolean; score: number; label: string; photos?: string[]; onClick: () => void;
+}> = ({ selected, score, label, photos, onClick }) => (
+  <button onClick={onClick}
+    className={`p-3 rounded-2xl border-2 text-right flex flex-col gap-2 cursor-pointer transition-all ${selected ? 'bg-[#096067] border-[#096067] text-white shadow-lg -translate-y-1' : 'bg-white border-[#d8cfbe] hover:border-[#c69d5b] text-[#334155]'}`}>
+    {photos && (
+      <div className="grid grid-cols-2 gap-1.5">
+        {photos.map((p, i) => <img key={i} src={p} alt={`نمونه امتیاز ${score}`} className="w-full h-24 object-cover rounded-xl bg-white" />)}
+      </div>
+    )}
+    <span className={`text-[10px] font-black ${selected ? 'text-[#eedaa8]' : 'text-[#855f20]'}`}>امتیاز {score}</span>
+    <span className="font-bold leading-snug text-sm">{label}</span>
+  </button>
 );
 
-const BPSRow = ({ title, options, current, onSelect }: any) => (
-  <div className="space-y-6">
-    <div className="flex items-center gap-4">
-      <div className="w-2 h-8 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/40"></div>
-      <h4 className="text-xl font-black text-slate-100">{title}</h4>
+const BPSPain: React.FC<Props> = ({ onAssess }) => {
+  const [intubated, setIntubated] = useState(true);
+  const [face, setFace] = useState(1);
+  const [arms, setArms] = useState(1);
+  const [vent, setVent] = useState(1);
+  const [voice, setVoice] = useState(1);
+  const [touched, setTouched] = useState(false);
+
+  const total = face + arms + (intubated ? vent : voice);
+  const severity = bpsSeverity(total);
+
+  useEffect(() => {
+    if (!touched) { onAssess(null); return; }
+    onAssess({
+      score: total,
+      severity,
+      toolUsed: 'BPS',
+      interpretation: total <= 3 ? 'نمرهٔ BPS برابر ۳ — فاقد درد' : `${severityLabel[severity]} (BPS = ${total} از ۱۲)`,
+      timestamp: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, touched, intubated]);
+
+  const pick = (setter: (n: number) => void) => (n: number) => { setter(n); setTouched(true); };
+
+  const faceLabels = ['آرام', 'چهره نسبتاً درهم کشیده (مانند پایین انداختن ابروها)', 'چهره کاملاً درهم کشیده (مانند بستن چشم‌ها)', 'درهم رفتن چهره به‌طوری که حالت خصمانه به خود بگیرد'];
+  const armLabels = ['بی‌حرکت', 'کمی خم می‌کند', 'کاملاً خم می‌کند و انگشتان را نیز جمع می‌کند', 'کشیدن و مقاومت در برابر مراقبت'];
+  const ventLabels = ['تحمل کردن تهویه', 'سرفه در حالی که در اغلب موارد دستگاه تهویه مکانیکی را تحمل می‌کند', 'جنگ با دستگاه تهویه مکانیکی؛ در بعضی مواقع تهویه امکان‌پذیر است', 'عدم تحمل تهویه'];
+  const voiceLabels = ['صحبت کردن بدون درد', 'آه و ناله کمتر از ۳ بار در دقیقه و با طول زمان کمتر از ۳ ثانیه', 'آه و ناله بیشتر از ۳ بار در دقیقه یا با طول زمان بیش از ۳ ثانیه', 'ضجه زدن یا شکایت‌های کلامی (آخ – وای) یا نگه‌داشتن تنفس'];
+
+  const Block: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-2.5 h-7 bg-gradient-to-b from-[#c69d5b] to-[#ca7f3c] rounded-full"></div>
+        <h4 className="text-xl font-black text-[#062a2e]">{title}</h4>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{children}</div>
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {options.map((opt: string, i: number) => (
-        <button key={i} onClick={() => onSelect(i + 1)} className={`p-4 rounded-2xl border-2 transition-all duration-300 text-right relative overflow-hidden ${current === i + 1 ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg -translate-y-1' : 'bg-white/5 border-white/5 text-slate-500 hover:border-indigo-400/30'}`}>
-           <div className="text-[9px] font-black mb-2 opacity-40 uppercase tracking-widest">انتخاب ۰{i + 1}</div>
-          <p className="text-base font-bold leading-tight">{opt}</p>
-        </button>
-      ))}
+  );
+
+  return (
+    <div className="premium-card p-6 sm:p-10 space-y-10">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">مقیاس رفتاری درد (BPS)</h3>
+        <p className="text-[#096067] font-bold">ویژهٔ بیماران با کاهش سطح هوشیاری، اینتوبه یا غیراینتوبه. عکس‌ها نمونهٔ بالینی هر امتیاز هستند.</p>
+      </div>
+
+      <div className="flex gap-2 p-1.5 bg-[#ede6d8] rounded-2xl max-w-md mx-auto">
+        {[[true, '🫁 اینتوبه (تهویه مکانیکی)'], [false, '🗣️ غیر اینتوبه']].map(([k, label]) => (
+          <button key={String(k)} onClick={() => { setIntubated(k as boolean); setTouched(true); }}
+            className={`flex-1 py-3 rounded-xl text-sm font-black cursor-pointer transition-all ${intubated === k ? 'bg-[#096067] text-white shadow' : 'text-[#062a2e]'}`}>
+            {label as string}
+          </button>
+        ))}
+      </div>
+
+      <Block title="۱. حالات چهره">
+        {faceLabels.map((l, i) => (
+          <PhotoOption key={i} score={i + 1} label={l} selected={face === i + 1} onClick={() => pick(setFace)(i + 1)}
+            photos={[BPS_FACE_IMAGES[0][i], BPS_FACE_IMAGES[1][i]]} />
+        ))}
+      </Block>
+
+      <Block title="۲. حرکات اندام‌های فوقانی">
+        {armLabels.map((l, i) => (
+          <PhotoOption key={i} score={i + 1} label={l} selected={arms === i + 1} onClick={() => pick(setArms)(i + 1)}
+            photos={[BPS_ARM_IMAGES[0][i], BPS_ARM_IMAGES[1][i]]} />
+        ))}
+      </Block>
+
+      {intubated ? (
+        <Block title="۳. هماهنگی با تهویهٔ مکانیکی">
+          {ventLabels.map((l, i) => <PhotoOption key={i} score={i + 1} label={l} selected={vent === i + 1} onClick={() => pick(setVent)(i + 1)} />)}
+        </Block>
+      ) : (
+        <Block title="۳. صحبت کردن (بیمار غیر اینتوبه)">
+          {voiceLabels.map((l, i) => <PhotoOption key={i} score={i + 1} label={l} selected={voice === i + 1} onClick={() => pick(setVoice)(i + 1)} />)}
+        </Block>
+      )}
+
+      <ScoreBanner title="مجموع امتیاز BPS (۳ تا ۱۲)" score={total} severity={severity}
+        extra="۳ فاقد درد • ۴–۶ خفیف • ۷–۹ متوسط • ۱۰–۱۲ شدید" />
+      {!touched && <p className="text-center text-xs font-bold text-[#855f20]">برای نمایش پلن درمانی، حداقل یک گزینه را انتخاب کنید (مقدار پیش‌فرض: همهٔ موارد امتیاز ۱).</p>}
     </div>
-  </div>
-);
+  );
+};
+
+/* ----------------------------- بیمار پارالیزه ----------------------------- */
+
+const ParalyzedPain: React.FC<Props> = ({ onAssess }) => {
+  const items = [
+    'افزایش فشار خون نسبت به مقدار پایه',
+    'تاکی‌کاردی (افزایش ضربان قلب نسبت به مقدار پایه)',
+    'تعریق',
+    'کاهش SpO₂',
+  ];
+  const [checked, setChecked] = useState<boolean[]>(items.map(() => false));
+  useEffect(() => { onAssess(null); /* برای این گروه نمرهٔ ابزاری وجود ندارد */ // eslint-disable-next-line
+  }, []);
+  const count = checked.filter(Boolean).length;
+
+  return (
+    <div className="premium-card p-6 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">بیمار تحت پارالیز / مرگ مغزی / فلج چهار اندام</h3>
+        <p className="text-rose-700 font-bold">
+          در بیماری که داروی بلوک‌کنندهٔ عضلانی دریافت کرده، پارالیز شده، مرگ مغزی دارد یا دچار فلج چهار اندام است، امکان استفاده از ابزار تشخیص درد (VAS/BPS) وجود ندارد.
+        </p>
+      </div>
+      <p className="text-[#475569] font-bold text-center">به‌جای ابزار، تغییرات همودینامیک بیمار ارزیابی شود:</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {items.map((t, i) => (
+          <label key={i} className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer font-bold ${checked[i] ? 'bg-rose-50 border-rose-400' : 'bg-white border-[#d8cfbe]'}`}>
+            <input type="checkbox" checked={checked[i]} className="w-5 h-5"
+              onChange={() => setChecked(c => c.map((v, j) => (j === i ? !v : v)))} />
+            <span>{t}</span>
+          </label>
+        ))}
+      </div>
+      <div className={`${count ? 'bg-rose-700' : 'bg-emerald-600'} text-white rounded-3xl p-6 shadow-lg`}>
+        <p className="text-xl font-black">
+          {count ? `${count} نشانهٔ همودینامیک مثبت — احتمال وجود درد` : 'نشانهٔ همودینامیک مثبتی ثبت نشده است'}
+        </p>
+        {count > 0 && (
+          <ul className="mt-3 space-y-2 font-bold text-sm leading-relaxed">
+            <li>• موضوع را به پزشک/متخصص بیهوشی اطلاع دهید؛ علل دیگر تغییرات همودینامیک (هیپوکسی، هیپوولمی، سپسیس و...) نیز بررسی شود.</li>
+            <li>• تصمیم دربارهٔ تجویز مسکن طبق دستور پزشک است؛ ارزیابی علائم حیاتی را حداقل هر ۱ ساعت تکرار کنید.</li>
+            <li>• نتیجه و مداخلات را مستندسازی کنید.</li>
+          </ul>
+        )}
+      </div>
+      <p className="text-xs font-bold text-[#475569]">
+        در تمام بیمارانی که مخدر یا غیرمخدر دریافت می‌کنند، علاوه بر علائم حیاتی، نمرهٔ تهوع/استفراغ و نمرهٔ آرام‌بخشی (RASS) نیز ارزیابی شود.
+      </p>
+    </div>
+  );
+};
+
+const PainAssessment: React.FC<Props> = (props) => {
+  switch (props.status) {
+    case PatientStatus.CONSCIOUS: return <ConsciousPain {...props} />;
+    case PatientStatus.DECREASED_CONSCIOUSNESS: return <BPSPain {...props} />;
+    case PatientStatus.PARALYZED: return <ParalyzedPain {...props} />;
+    default: return null;
+  }
+};
 
 export default PainAssessment;

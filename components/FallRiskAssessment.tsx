@@ -38,7 +38,7 @@ const MorseScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) =>
     const total = (Object.values(newScores) as number[]).reduce((a, b) => a + b, 0);
     
     let interpretation = "", color = "", icon = "", riskLevel = "";
-    if (total > 45) {
+    if (total >= 45) {
       riskLevel = 'high';
       interpretation = "ریسک بالا (High Risk)";
       color = "bg-rose-700";
@@ -60,9 +60,9 @@ const MorseScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) =>
   
   return (
     <div className="grid gap-12 pt-8">
-        <AssessmentRow title="۱. سابقه سقوط" currentValue={scores.history} onSelect={(v) => handleSelect('history', v)} options={[{label: 'خیر', value: 0}, {label: 'بله (در ۳ ماه گذشته)', value: 25}]} />
+        <AssessmentRow title="۱. سابقه سقوط" currentValue={scores.history} onSelect={(v) => handleSelect('history', v)} options={[{label: 'خیر', value: 0}, {label: 'بله (سقوط در ۳ ماه گذشته یا حین بستری)', value: 25}]} />
         <AssessmentRow title="۲. تشخیص پزشکی ثانویه" currentValue={scores.secondary} onSelect={(v) => handleSelect('secondary', v)} options={[{label: 'خیر (فقط یک تشخیص فعال)', value: 0}, {label: 'بله (بیش از یک تشخیص فعال)', value: 15}]} />
-        <AssessmentRow title="۳. ابزار کمکی" currentValue={scores.aid} onSelect={(v) => handleSelect('aid', v)} options={[{label: 'بدون کمک/استراحت مطلق/ویلچر', value: 0}, {label: 'عصا/واکر', value: 15}, {label: 'تکیه به وسایل اطراف', value: 30}]} />
+        <AssessmentRow title="۳. ابزار کمکی" currentValue={scores.aid} onSelect={(v) => handleSelect('aid', v)} options={[{label: 'بدون وسیله / استراحت مطلق / کمک پرستار', value: 0}, {label: 'عصا/واکر', value: 15}, {label: 'تکیه به وسایل اطراف', value: 30}]} />
         <AssessmentRow title="۴. IV درمانی" currentValue={scores.iv} onSelect={(v) => handleSelect('iv', v)} options={[{label: 'خیر', value: 0}, {label: 'بله', value: 20}]} />
         <AssessmentRow title="۵. الگوی گام برداشتن" currentValue={scores.gait} onSelect={(v) => handleSelect('gait', v)} options={[{label: 'نرمال', value: 0}, {label: 'ضعیف (سر خمیده، گام کوتاه)', value: 10}, {label: 'مختل (مشکل در برخاستن، نگاه به زمین)', value: 20}]} />
         <AssessmentRow title="۶. وضعیت روانی" currentValue={scores.mental} onSelect={(v) => handleSelect('mental', v)} options={[{label: 'طبیعی (آگاه به توانایی خود)', value: 0}, {label: 'فراموشکاری محدودیت‌ها', value: 15}]} />
@@ -324,68 +324,68 @@ const FallRiskAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> 
             <MainCard title="نوزادان" subtitle="Neonatal Fall Scale" icon="🤱" onClick={() => setScale('neonatal')} />
           </div>
 
-          <div className="border-t border-white/5 pt-12 space-y-8">
+          <div className="border-t border-[#c69d5b]/15 pt-12 space-y-8">
             <div className="text-center space-y-2">
               <span className="text-4xl">💡</span>
-              <h4 className="text-2xl font-black text-white">متدها و تکنیک‌های استاندارد پیشگیری از سقوط</h4>
-              <p className="text-slate-400 text-sm max-w-2xl mx-auto">دستورالعمل‌های بالینی و خودمراقبتی جهت افزایش ایمنی و به حداقل رساندن خطرات احتمالی در بخش</p>
+              <h4 className="text-2xl font-black text-[#062a2e]">متدها و تکنیک‌های استاندارد پیشگیری از سقوط</h4>
+              <p className="text-[#475569] text-sm max-w-2xl mx-auto font-medium">دستورالعمل‌های بالینی و خودمراقبتی جهت افزایش ایمنی و به حداقل رساندن خطرات احتمالی در بخش</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-right">
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🏠</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۱. ایمن‌سازی محیط فیزیکی</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Environmental Safety</span>
+                    <h5 className="text-lg font-black text-[#096067]">۱. ایمن‌سازی محیط فیزیکی</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Environmental Safety</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>روشنایی شبانه کافی در کابین و حمام؛ روشن نگه داشتن چراغ‌های راهنما در تاریکی.</li>
                   <li>حذف فوری اشیاء اضافی، ملافه‌های رها شده و سیم‌های برق مزاحم از مسیرهای رفت‌وآمد بیمار.</li>
                   <li>استفاده از نوارهای ضد لغزش یا تاتامی‌های پلیمری غیر لغزنده در کف حمام و دستشویی بیمارستان.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🛏️</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۲. مانیتورینگ تخت و تجهیزات</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Bed & Equipment Protocols</span>
+                    <h5 className="text-lg font-black text-[#096067]">۲. مانیتورینگ تخت و تجهیزات</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Bed & Equipment Protocols</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>تنظیم دائم تخت در پایین‌ترین ارتفاع نسبت به زمین و اطمینان از قفل بودن چرخ‌های تخت و ویلچر.</li>
                   <li>بالا بودن مستمر ریل‌های محافظ کنار تخت (Side Rails)، به ویژه در طول استراحت و شب.</li>
                   <li>قرار دادن دکمه زنگ اخبار، تلفن همراه، آب آشامیدنی و عینک دقیقاً در مجاورت و قابل دسترس بیمار.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">🚶</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۳. تکنیک‌های پویا و ایمن جابجایی</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Safe Transfer Techniques</span>
+                    <h5 className="text-lg font-black text-[#096067]">۳. تکنیک‌های پویا و ایمن جابجایی</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Safe Transfer Techniques</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li><strong>قانون ۳۰ ثانیه‌ای ایست لب تخت:</strong> آموزش به بیمار جهت نشستن کامل روی لبه تخت به مدت حداقل ۳۰ ثانیه قبل از برخاستن به منظور پیشگیری از افت فشار وضعیتی ناگهانی (Orthostatic Hypotension).</li>
                   <li>استفاده الزامی از دمپایی یا کفش‌های طبی فیت و غیر لغزنده به جای جوراب‌های صاف.</li>
                   <li>درخواست کمک مداوم از پرسنل پرستاری حین خروج اول پس از عمل جراحی یا بی‌حسی نخاعی.</li>
                 </ul>
               </div>
 
-              <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5 space-y-4 hover:border-indigo-500/20 transition-all">
+              <div className="bg-white/95 p-6 rounded-[2rem] border border-[#c69d5b]/25 space-y-4 hover:border-[#096067] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">💊</span>
                   <div>
-                    <h5 className="text-lg font-black text-indigo-300">۴. مراقبت‌های دارویی و نمادهای هشدار</h5>
-                    <span className="text-[10px] text-slate-500 font-mono">Clinical & Medication Care</span>
+                    <h5 className="text-lg font-black text-[#096067]">۴. مراقبت‌های دارویی و نمادهای هشدار</h5>
+                    <span className="text-[10px] text-[#55696d] font-mono">Clinical & Medication Care</span>
                   </div>
                 </div>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-2.5 leading-relaxed pr-2">
+                <ul className="list-disc list-inside text-[#334155] text-sm space-y-2.5 leading-relaxed pr-2 font-medium">
                   <li>بررسی اثر داروها بر تعادل و هوشیاری (مانند مسکن‌های مخدر، دیورتیک‌ها، خواب‌آورها و داروهای ضد فشارخون).</li>
                   <li>بستن دستبند زرد متمایز هشدار سقوط روی مچ بیمار و نصب علامت ستاره روی کارتکس و بالای تخت.</li>
                   <li>آموزش‌های اختصاصی و دلسوزانه به همراه بیمار و والدین اطفال جهت پایش پیوسته رفتار کودک.</li>
@@ -404,10 +404,10 @@ const FallRiskAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> 
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={handleBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-8 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">ارزیابی ریسک سقوط</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">انتخاب مقیاس بر اساس گروه سنی بیمار</p>
+      <div className="premium-card p-10 space-y-8 border-[#c69d5b]/25 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">ارزیابی ریسک سقوط</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">انتخاب مقیاس بر اساس گروه سنی بیمار</p>
         </div>
         {renderContent()}
       </div>
@@ -417,11 +417,11 @@ const FallRiskAssessment: React.FC<{ onBack: () => void; onHome: () => void; }> 
 };
 
 const MainCard = ({ title, subtitle, icon, onClick }: any) => (
-    <button onClick={onClick} className="group premium-card p-10 transition-all duration-300 hover:-translate-y-2 flex flex-col items-center text-center border-white/5 hover:border-indigo-500/50">
-      <div className="w-24 h-24 bg-indigo-500/10 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 text-6xl">{icon}</div>
-      <h3 className="text-3xl font-black text-white mb-2">{title}</h3>
-      <p className="text-indigo-400 text-sm font-bold">{subtitle}</p>
+    <button onClick={onClick} className="group premium-card p-10 transition-all duration-300 hover:-translate-y-1.5 flex flex-col items-center text-center border-[#c69d5b]/30 hover:border-[#096067] cursor-pointer shadow-md hover:shadow-xl">
+      <div className="w-24 h-24 bg-[#096067]/10 border border-[#c69d5b]/30 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-[#096067] group-hover:text-white transition-all text-6xl shadow-sm">{icon}</div>
+      <h3 className="text-3xl font-black text-[#062a2e] mb-2 group-hover:text-[#096067] transition-colors">{title}</h3>
+      <p className="text-[#ca7f3c] text-sm font-bold">{subtitle}</p>
     </button>
-  );
+);
 
 export default FallRiskAssessment;

@@ -149,24 +149,24 @@ const PediatricGCSScale: React.FC<{ onResult: (res: any) => void }> = ({ onResul
   return (
     <div className="space-y-10 pt-4">
       {/* Age Group Selector matching MDCalc */}
-      <div className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
-        <label className="text-slate-300 text-sm font-bold block">انتخاب رده سنی بر اساس استاندارد MDCalc pGCS:</label>
+      <div className="bg-white/90 p-6 rounded-3xl border border-[#c69d5b]/25 shadow-sm space-y-4">
+        <label className="text-[#062a2e] text-sm font-bold block">انتخاب رده سنی بر اساس استاندارد MDCalc pGCS:</label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setAgeGroup('infant')}
-            className={`p-4 rounded-2xl font-black text-sm border transition-all text-right ${ageGroup === 'infant' ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'}`}
+            className={`p-4 rounded-2xl font-black text-sm border-2 transition-all text-right cursor-pointer ${ageGroup === 'infant' ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-white/90 border-[#c69d5b]/25 text-[#062a2e] hover:border-[#096067]'}`}
           >
             👶 نوزاد / شیرخوار زیر ۲ سال (Infant &lt; 2 yrs)
-            <span className="block text-[10px] text-indigo-200 mt-1 font-medium">ارزیابی غیرکلامی بر اساس گریه، غان و غون و بازخورد محیطی</span>
+            <span className="block text-[10px] text-white/80 mt-1 font-medium">ارزیابی غیرکلامی بر اساس گریه، غان و غون و بازخورد محیطی</span>
           </button>
           <button
             type="button"
             onClick={() => setAgeGroup('child')}
-            className={`p-4 rounded-2xl font-black text-sm border transition-all text-right ${ageGroup === 'child' ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'}`}
+            className={`p-4 rounded-2xl font-black text-sm border-2 transition-all text-right cursor-pointer ${ageGroup === 'child' ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-white/90 border-[#c69d5b]/25 text-[#062a2e] hover:border-[#096067]'}`}
           >
             👦 کودک ۲ سال و بالاتر (Child &ge; 2 yrs)
-            <span className="block text-[10px] text-indigo-200 mt-1 font-medium">ارزیابی پاسخ‌های آگاهانه کلامی متناسب با رشد زبانی کودک</span>
+            <span className="block text-[10px] text-white/80 mt-1 font-medium">ارزیابی پاسخ‌های آگاهانه کلامی متناسب با رشد زبانی کودک</span>
           </button>
         </div>
       </div>
@@ -282,10 +282,10 @@ const AVPUScale: React.FC<{ onResult: (res: any) => void }> = ({ onResult }) => 
 };
 
 const AVPUButton = ({ label, persianLabel, value, selected, onClick }: any) => (
-  <button onClick={() => onClick(value)} className={`p-6 rounded-3xl border-2 text-center transition-all ${selected === value ? 'bg-indigo-600 border-indigo-400 scale-105 shadow-xl' : 'bg-white/5 border-white/5 opacity-60 hover:opacity-100'}`}>
-    <div className="text-4xl font-black text-white">{value}</div>
-    <div className="text-sm font-bold text-indigo-300 mt-2">{label}</div>
-    <div className="text-lg font-black text-white mt-1">{persianLabel}</div>
+  <button onClick={() => onClick(value)} className={`p-6 rounded-3xl border-2 text-center transition-all cursor-pointer ${selected === value ? 'bg-[#096067] border-[#c69d5b] scale-105 shadow-md text-white' : 'bg-white/90 border-[#c69d5b]/25 hover:border-[#096067] text-[#062a2e] shadow-sm'}`}>
+    <div className={`text-4xl font-black ${selected === value ? 'text-[#eedaa8]' : 'text-[#096067]'}`}>{value}</div>
+    <div className="text-sm font-bold text-[#096067] mt-2">{label}</div>
+    <div className="text-lg font-black mt-1">{persianLabel}</div>
   </button>
 );
 
@@ -306,17 +306,17 @@ const ConsciousnessAssessment: React.FC<{ onBack: () => void; onHome: () => void
     if (!scale) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-10">
+          <ScaleCard title="AVPU" subtitle="AVPU Scale" description="غربالگری فوق سریع سطح هوشیاری بیمار" onClick={() => setScale('AVPU')} />
           <ScaleCard title="GCS (بزرگسالان)" subtitle="Glasgow Coma Scale" description="مقیاس کما گلاسکو برای سنین بالای ۴ سال و بزرگسالان" onClick={() => setScale('GCS')} />
           <ScaleCard title="GCS (اطفال)" subtitle="Pediatric GCS" description="تعدیل شده برای کودکان زیر ۲ سال و نوزادان غیرکلامی" onClick={() => setScale('Pediatric GCS')} />
           <ScaleCard title="FOUR" subtitle="FOUR Score" description="ارزیابی کامل عدم پاسخ‌دهی شامل رفلکس ساقه مغز و تنفس" onClick={() => setScale('FOUR')} />
-          <ScaleCard title="AVPU" subtitle="AVPU Scale" description="غربالگری فوق سریع سطح هوشیاری بیمار" onClick={() => setScale('AVPU')} />
         </div>
       );
     }
     switch(scale) {
+      case 'AVPU': return <AVPUScale onResult={setResult} />;
       case 'GCS': return <GCSScale onResult={setResult} />;
       case 'Pediatric GCS': return <PediatricGCSScale onResult={setResult} />;
-      case 'AVPU': return <AVPUScale onResult={setResult} />;
       case 'FOUR': return <FOURScale onResult={setResult} />;
       default: return null;
     }
@@ -325,10 +325,10 @@ const ConsciousnessAssessment: React.FC<{ onBack: () => void; onHome: () => void
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={handleBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-8 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">ارزیابی سطح هوشیاری</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">لطفاً مقیاس مورد نظر را انتخاب کنید</p>
+      <div className="premium-card p-10 space-y-8 border-[#c69d5b]/25 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">ارزیابی سطح هوشیاری</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">لطفاً مقیاس مورد نظر را انتخاب کنید</p>
         </div>
         {renderContent()}
       </div>
@@ -338,12 +338,12 @@ const ConsciousnessAssessment: React.FC<{ onBack: () => void; onHome: () => void
 };
 
 const ScaleCard = ({ title, subtitle, description, onClick }: any) => (
-    <button onClick={onClick} className="group p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center hover:-translate-y-2 flex flex-col justify-between items-center min-h-[190px]">
+    <button onClick={onClick} className="group p-8 rounded-3xl bg-white/95 border border-[#c69d5b]/30 hover:border-[#096067] hover:shadow-xl transition-all duration-300 text-center hover:-translate-y-1.5 flex flex-col justify-between items-center min-h-[190px] cursor-pointer shadow-md">
       <div>
-        <h3 className="text-2xl font-black text-indigo-400 mb-2 group-hover:text-indigo-300 transition-colors">{title}</h3>
-        {subtitle && <p className="text-emerald-400 text-sm font-black mb-3">{subtitle}</p>}
+        <h3 className="text-2xl font-black text-[#062a2e] mb-2 group-hover:text-[#096067] transition-colors">{title}</h3>
+        {subtitle && <p className="text-[#ca7f3c] text-sm font-black mb-3">{subtitle}</p>}
       </div>
-      <p className="text-white/60 text-xs font-bold leading-relaxed">{description}</p>
+      <p className="text-[#475569] text-xs font-medium leading-relaxed">{description}</p>
     </button>
 );
 

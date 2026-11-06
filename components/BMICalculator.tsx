@@ -82,17 +82,16 @@ const BMICalculator: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ 
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={onBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">محاسبه‌گر شاخص توده بدنی (BMI)</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">ابزار سریع برای ارزیابی وضعیت وزنی</p>
+      <div className="premium-card p-10 space-y-12 border-[#c69d5b]/30 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">محاسبه‌گر شاخص توده بدنی (BMI)</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">ابزار سریع برای ارزیابی وضعیت وزنی</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
-            <label className="text-xl font-black text-slate-100 block text-center">قد (سانتی‌متر)</label>
+            <label className="text-xl font-black text-[#062a2e] block text-center">قد (سانتی‌متر)</label>
             <div className="relative group">
-               <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all"></div>
-              <div className="relative text-5xl font-black text-white text-center tabular-nums">{height}</div>
+              <div className="text-5xl font-black text-[#ca7f3c] text-center tabular-nums">{height}</div>
             </div>
             <input 
               type="range" 
@@ -100,14 +99,13 @@ const BMICalculator: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ 
               max="220" 
               value={height} 
               onChange={(e) => setHeight(Number(e.target.value))} 
-              className="w-full"
+              className="w-full cursor-pointer"
             />
           </div>
           <div className="space-y-4">
-            <label className="text-xl font-black text-slate-100 block text-center">وزن (کیلوگرم)</label>
-             <div className="relative group">
-               <div className="absolute -inset-4 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all"></div>
-              <div className="relative text-5xl font-black text-white text-center tabular-nums">{weight}</div>
+            <label className="text-xl font-black text-[#062a2e] block text-center">وزن (کیلوگرم)</label>
+            <div className="relative group">
+              <div className="text-5xl font-black text-[#ca7f3c] text-center tabular-nums">{weight}</div>
             </div>
             <input 
               type="range" 
@@ -115,7 +113,7 @@ const BMICalculator: React.FC<{ onBack: () => void; onHome: () => void; }> = ({ 
               max="200" 
               value={weight} 
               onChange={(e) => setWeight(Number(e.target.value))} 
-              className="w-full"
+              className="w-full cursor-pointer"
             />
           </div>
         </div>

@@ -29,7 +29,7 @@ const getPteRecommendations = (riskLevel: string): string[] => {
 
 const wellsCriteriaDVT = [
   { name: 'paralysis', label: 'جراحی، صدمه یا گچ در اندام تحتانی، پارزی یا پارالایزی', points: 1 },
-  { name: 'bedridden', label: 'بستری در تخت بیش از ۳ روز یا جراحی بزرگ در ۴ هفته قبل', points: 1 },
+  { name: 'bedridden', label: 'بستری در تخت بیش از ۳ روز یا جراحی بزرگ در ۱۲ هفتهٔ قبل', points: 1 },
   { name: 'tenderness', label: 'تندرنس در مسیر وریدهای پشت زانو یا ران', points: 1 },
   { name: 'swelling', label: 'تورم یک عضو (کل اندام)', points: 1 },
   { name: 'pitting_edema', label: 'ادم گوده‌گذار در اندام مبتلا', points: 1 },
@@ -96,27 +96,41 @@ const ThromboembolismAssessment: React.FC<{ onBack: () => void; onHome: () => vo
   return (
     <div className="space-y-8">
       <ModuleHeader onBack={onBack} onHome={onHome} />
-      <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-        <div className="pb-8 border-b border-white/5 text-center">
-          <h3 className="text-3xl font-black text-white">معیار ولز (Wells): ارزیابی ریسک ترومبوآمبولی وریدی</h3>
-          <p className="text-indigo-400 text-base font-bold mt-2">لطفاً نوع ارزیابی مورد نظر را انتخاب کنید</p>
+      <div className="premium-card p-10 space-y-12 border-[#c69d5b]/30 shadow-md">
+        <div className="pb-8 border-b border-[#c69d5b]/15 text-center">
+          <h3 className="text-3xl font-black text-[#062a2e]">معیار ولز (Wells): ارزیابی ریسک ترومبوآمبولی وریدی</h3>
+          <p className="text-[#096067] text-base font-bold mt-2">لطفاً نوع ارزیابی مورد نظر را انتخاب کنید</p>
         </div>
 
-        <div className="bg-white/5 p-2 rounded-2xl flex gap-2 border border-white/10 shadow-inner max-w-lg mx-auto">
-            <button onClick={() => handleScaleChange('dvt')} className={`flex-1 px-8 py-3 rounded-xl text-sm font-black transition-all ${scale === 'dvt' ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-400 hover:text-white'}`}>
+        <div className="bg-white/90 p-2 rounded-2xl flex gap-2 border border-[#c69d5b]/30 shadow-sm max-w-lg mx-auto">
+            <button
+              onClick={() => handleScaleChange('dvt')}
+              className={`flex-1 px-8 py-3 rounded-xl text-sm font-black transition-all cursor-pointer ${
+                scale === 'dvt'
+                  ? 'bg-gradient-to-r from-[#ca7f3c] to-[#c69d5b] text-white shadow-md scale-105'
+                  : 'text-[#062a2e] hover:text-[#096067]'
+              }`}
+            >
                 ترومبوز ورید عمقی (DVT)
             </button>
-            <button onClick={() => handleScaleChange('pte')} className={`flex-1 px-8 py-3 rounded-xl text-sm font-black transition-all ${scale === 'pte' ? 'bg-indigo-600 text-white shadow-xl scale-105' : 'text-slate-400 hover:text-white'}`}>
+            <button
+              onClick={() => handleScaleChange('pte')}
+              className={`flex-1 px-8 py-3 rounded-xl text-sm font-black transition-all cursor-pointer ${
+                scale === 'pte'
+                  ? 'bg-gradient-to-r from-[#ca7f3c] to-[#c69d5b] text-white shadow-md scale-105'
+                  : 'text-[#062a2e] hover:text-[#096067]'
+              }`}
+            >
                 آمبولی ریه (PTE)
             </button>
         </div>
 
         <div className="space-y-4 pt-6">
           {currentCriteria.map(item => (
-            <label key={item.name} className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${criteria[item.name] ? 'bg-indigo-600/20 border-indigo-500' : 'bg-white/5 border-white/5'}`}>
-              <input type="checkbox" checked={!!criteria[item.name]} onChange={() => toggleCriterion(item.name)} className="w-5 h-5 rounded text-indigo-500 bg-slate-700 border-slate-500 focus:ring-indigo-500" />
-              <span className="mr-4 text-white font-bold flex-1">{item.label}</span>
-              <span className={`font-black text-lg ${item.points > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{item.points > 0 ? `+${item.points}` : item.points}</span>
+            <label key={item.name} className={`flex items-center p-5 rounded-2xl border-2 cursor-pointer transition-all ${criteria[item.name] ? 'bg-[#096067] border-[#c69d5b] text-white shadow-md' : 'bg-white/90 border-[#c69d5b]/25 hover:border-[#096067] hover:bg-white text-[#062a2e]'}`}>
+              <input type="checkbox" checked={!!criteria[item.name]} onChange={() => toggleCriterion(item.name)} className="w-5 h-5 rounded text-[#096067] bg-white border-[#c69d5b]/40 focus:ring-[#096067]" />
+              <span className={`mr-4 font-bold flex-1 ${criteria[item.name] ? 'text-white' : 'text-[#062a2e]'}`}>{item.label}</span>
+              <span className={`font-black text-lg ${item.points > 0 ? (criteria[item.name] ? 'text-[#eedaa8]' : 'text-[#ca7f3c]') : 'text-rose-500'}`}>{item.points > 0 ? `+${item.points}` : item.points}</span>
             </label>
           ))}
         </div>

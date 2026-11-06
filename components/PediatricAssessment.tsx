@@ -1,153 +1,285 @@
-
-import React, { useState } from 'react';
-import { PediatricAgeGroup, PainSeverity, AssessmentResult, FLACCScores, CHIPPScores } from '../types';
+import React, { useEffect, useState } from 'react';
+import { AssessmentResult, PainSeverity, PediatricAgeGroup } from '../types';
+import AssessmentRow from './common/AssessmentRow';
+import {
+  WONG_BAKER_FACES, pediatricSeverity, wongBakerSeverity, severityLabel,
+  PEDIATRIC_DRUGS, PEDIATRIC_PROCEDURES,
+} from './painData';
 
 interface Props {
   ageGroup: PediatricAgeGroup;
-  onAssess: (result: AssessmentResult) => void;
+  onAssess: (result: AssessmentResult | null) => void;
 }
 
-const PediatricAssessment: React.FC<Props> = ({ ageGroup, onAssess }) => {
-  const [flacc, setFlacc] = useState<FLACCScores>({ face: 0, legs: 0, activity: 0, cry: 0, consolability: 0 });
-  const [chipps, setChipps] = useState<CHIPPScores>({ cry: 0, facial: 0, torsoPosture: 0, legPosture: 0, restlessness: 0 });
-  const [selectedScore, setSelectedScore] = useState<number>(0);
-
-  const handleFlaccChange = (cat: keyof FLACCScores, val: number) => {
-    const newScores = { ...flacc, [cat]: val };
-    setFlacc(newScores);
-    
-    const total = (Object.values(newScores) as number[]).reduce((a, b) => a + b, 0);
-    
-    let severity = PainSeverity.NONE;
-    if (total > 0 && total <= 3) severity = PainSeverity.MILD;
-    else if (total <= 6) severity = PainSeverity.MODERATE;
-    else if (total >= 7) severity = PainSeverity.SEVERE;
-
-    onAssess({ score: total, severity, toolUsed: 'FLACC', timestamp: new Date() });
-  };
-  
-  const handleChippsChange = (cat: keyof CHIPPScores, val: number) => {
-    const newScores = { ...chipps, [cat]: val };
-    setChipps(newScores);
-    
-    const total = (Object.values(newScores) as number[]).reduce((a, b) => a + b, 0);
-    
-    let severity = PainSeverity.NONE;
-    if (total === 0) severity = PainSeverity.NONE;
-    else if (total <= 3) severity = PainSeverity.MILD;
-    else if (total <= 6) severity = PainSeverity.MODERATE;
-    else if (total >= 7) severity = PainSeverity.SEVERE;
-
-    onAssess({ score: total, severity, toolUsed: 'CHIPPS', timestamp: new Date() });
-  };
-
-
-  const handleSimpleScore = (val: number, tool: 'WONG_BAKER' | 'NRS') => {
-    setSelectedScore(val);
-    let severity = PainSeverity.NONE;
-    if (val > 0 && val <= 3) severity = PainSeverity.MILD;
-    else if (val <= 6) severity = PainSeverity.MODERATE;
-    else if (val >= 7) severity = PainSeverity.SEVERE;
-
-    onAssess({ score: val, severity, toolUsed: tool, timestamp: new Date() });
-  };
-
-  if (ageGroup === PediatricAgeGroup.INFANT_TODDLER) {
-    return (
-      <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-        <div className="text-right border-b border-white/5 pb-6">
-          <h3 className="text-3xl font-black text-white">مقیاس FLACC (۱ ماه تا ۴ سال)</h3>
-          <p className="text-indigo-400 text-sm font-bold mt-2 italic">ارزیابی رفتاری بر اساس مشاهده پرستار</p>
-        </div>
-        <div className="grid gap-10">
-          <ScoreRow title="چهره (Face)" current={flacc.face} options={["آرام (۰)", "اخم گهگاه/بی‌علاقگی (۱)", "لرزش چانه/فک فشرده (۲)"]} onSelect={(v) => handleFlaccChange('face', v)} />
-          <ScoreRow title="پاها (Legs)" current={flacc.legs} options={["طبیعی (۰)", "ناآرام/سفت (۱)", "لگد زدن/کشیده شده (۲)"]} onSelect={(v) => handleFlaccChange('legs', v)} />
-          <ScoreRow title="فعالیت (Activity)" current={flacc.activity} options={["حرکت آرام (۰)", "پیچ و تاب/سفتی (۱)", "حرکات سریع/تکان شدید (۲)"]} onSelect={(v) => handleFlaccChange('activity', v)} />
-          <ScoreRow title="گریه (Cry)" current={flacc.cry} options={["بدون گریه (۰)", "ناله/شکایت گهگاه (۱)", "گریه مداوم/جیغ (۲)"]} onSelect={(v) => handleFlaccChange('cry', v)} />
-          <ScoreRow title="تسلی‌پذیری (Consolability)" current={flacc.consolability} options={["آرام (۰)", "با لمس آرام می‌شود (۱)", "دلداری دادن دشوار است (۲)"]} onSelect={(v) => handleFlaccChange('consolability', v)} />
-        </div>
-      </div>
-    );
-  }
-
-  if (ageGroup === PediatricAgeGroup.PRE_SCHOOL) {
-    return (
-      <div className="premium-card p-10 space-y-12">
-        <div className="text-right border-b border-white/5 pb-6">
-          <h3 className="text-3xl font-black text-white">مقیاس Wong-Baker (۳ تا ۷ سال)</h3>
-          <p className="text-indigo-400 text-sm font-bold mt-2 italic">از کودک بخواهید چهره‌ای که مشابه حال اوست را انتخاب کند</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          {[0, 2, 4, 6, 8, 10].map((v, i) => (
-            <button key={v} onClick={() => handleSimpleScore(v, 'WONG_BAKER')} className={`p-6 rounded-3xl border-2 transition-all ${selectedScore === v ? 'bg-indigo-600 border-indigo-400 scale-105 shadow-xl' : 'bg-white/5 border-white/5 grayscale opacity-50'}`}>
-              <div className="text-5xl mb-4">{["😊", "😐", "😟", "😣", "😭", "😫"][i]}</div>
-              <div className="text-lg font-black text-white">{v}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (ageGroup === PediatricAgeGroup.SCHOOL_ADOLESCENT) {
-    return (
-        <div className="premium-card p-10 space-y-12">
-            <div className="text-right border-b border-white/5 pb-6">
-                <h3 className="text-3xl font-black text-white">مقیاس عددی درد (NRS) (بالای ۷ سال)</h3>
-                <p className="text-indigo-400 text-sm font-bold mt-2 italic">از کودک بخواهید از ۰ (بدون درد) تا ۱۰ (بدترین درد) به درد خود امتیاز دهد</p>
-            </div>
-            <div className="flex justify-center items-center gap-2 flex-wrap">
-                {[...Array(11).keys()].map(v => (
-                    <button
-                        key={v}
-                        onClick={() => handleSimpleScore(v, 'NRS')}
-                        className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 text-2xl font-black transition-all flex items-center justify-center
-                        ${selectedScore === v ? 'bg-indigo-600 border-indigo-400 scale-110 shadow-xl' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
-                    >
-                        {v}
-                    </button>
-                ))}
-            </div>
-            <div className="flex justify-between px-2 text-xs font-black text-indigo-300 uppercase">
-                <span>بدون درد</span>
-                <span>درد غیر قابل تحمل</span>
-            </div>
-        </div>
-    );
-  }
-
-  if (ageGroup === PediatricAgeGroup.POST_OP) {
-      return (
-          <div className="premium-card p-10 space-y-12 border-indigo-500/20">
-              <div className="text-right border-b border-white/5 pb-6">
-                  <h3 className="text-3xl font-black text-white">مقیاس CHIPPS (بعد از عمل تا ۷ سال)</h3>
-                  <p className="text-indigo-400 text-sm font-bold mt-2 italic">ارزیابی درد بعد از عمل در شیرخواران و کودکان</p>
-              </div>
-              <div className="grid gap-10">
-                  <ScoreRow title="گریه (Cry)" current={chipps.cry} options={["بدون گریه (۰)", "ناله کردن (۱)", "جیغ و فریاد (۲)"]} onSelect={(v) => handleChippsChange('cry', v)} />
-                  <ScoreRow title="حالت چهره (Facial)" current={chipps.facial} options={["آرام (۰)", "درهم کشیده (۱)", "صورت سفت شده (۲)"]} onSelect={(v) => handleChippsChange('facial', v)} />
-                  <ScoreRow title="وضعیت تنه (Torso)" current={chipps.torsoPosture} options={["طبیعی (۰)", "جابجایی/تنش (۱)", "قوس‌دار/سفت (۲)"]} onSelect={(v) => handleChippsChange('torsoPosture', v)} />
-                  <ScoreRow title="وضعیت پاها (Legs)" current={chipps.legPosture} options={["طبیعی (۰)", "ناآرام/لگد زدن (۱)", "جمع شده/سفت (۲)"]} onSelect={(v) => handleChippsChange('legPosture', v)} />
-                  <ScoreRow title="بی‌قراری (Restlessness)" current={chipps.restlessness} options={["آرام (۰)", "بی‌قرار و پیچ و تاب خوردن (۱)", "حرکات شدید و تند (۲)"]} onSelect={(v) => handleChippsChange('restlessness', v)} />
-              </div>
-          </div>
-      );
-  }
-
-  return null;
+const sevColor: Record<PainSeverity, string> = {
+  [PainSeverity.NONE]: 'bg-emerald-600',
+  [PainSeverity.MILD]: 'bg-amber-500',
+  [PainSeverity.MODERATE]: 'bg-orange-600',
+  [PainSeverity.SEVERE]: 'bg-rose-700',
+  [PainSeverity.VERY_SEVERE]: 'bg-red-800',
 };
 
-const ScoreRow = ({ title, options, current, onSelect }: any) => (
-  <div className="space-y-4">
-    <h4 className="text-lg font-black text-slate-200">{title}</h4>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      {options.map((opt: string, i: number) => (
-        <button key={i} onClick={() => onSelect(i)} className={`p-4 rounded-2xl border-2 text-right transition-all ${current === i ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/5 text-slate-400 hover:border-white/10'}`}>
-          <span className="text-sm font-bold">{opt}</span>
+const Banner: React.FC<{ title: string; score: number; severity: PainSeverity; extra?: string }> = ({ title, score, severity, extra }) => (
+  <div className={`${sevColor[severity]} rounded-3xl p-6 flex items-center justify-between text-white shadow-lg`}>
+    <div>
+      <p className="text-sm font-bold opacity-90">{title}</p>
+      <p className="text-2xl font-black">{severityLabel[severity]}</p>
+      {extra && <p className="text-xs font-bold opacity-90 mt-1">{extra}</p>}
+    </div>
+    <div className="bg-white text-[#ca7f3c] border-2 border-[#c69d5b] rounded-2xl px-6 py-2 text-4xl font-black tabular-nums">{score}</div>
+  </div>
+);
+
+/* ------------------ ابزارهای ۵ آیتمی (FLACC / CHIPPS) ------------------ */
+
+type Item = { key: string; title: string; options: string[] };
+
+const FLACC_ITEMS: Item[] = [
+  { key: 'face', title: 'ف) صورت (Face)', options: ['عدم وجود حالت خاص یا در حال لبخند زدن', 'لبخندهای گاه به گاه یا اخم، پس زدن، بی‌علاقگی', 'لرزیدن دائمی و مکرر چانه، فک به هم فشرده'] },
+  { key: 'legs', title: 'ل) پاها (Legs)', options: ['حالت طبیعی یا آرام', 'ناراحت، بی‌قرار، سفتی', 'لگد زدن، پاهای کشیده شده'] },
+  { key: 'activity', title: 'آ) فعالیت (Activity)', options: ['دراز کشیدن آرام، حالت طبیعی، به آسانی حرکت می‌کند', 'پیچ و تاب خوردن، بی‌ثبات، عقب و جلو شدن، سفتی', 'خمیده شدن، سفت و سخت یا حرکات سریع'] },
+  { key: 'cry', title: 'ک) گریه (Cry)', options: ['بدون گریه (بیدار یا خواب)', 'ناله کردن یا زاری کردن، شکایت‌های گاه و بیگاه', 'پیوسته گریه می‌کند، جیغ می‌کشد یا هق‌هق می‌کند، مکرر شکایت می‌کند'] },
+  { key: 'consol', title: 'ت) تسلی‌پذیری (Consolability)', options: ['خشنود، آرام', 'با لمس، آغوش کشیده شدن و صحبت با او گاه به گاه تسلی پیدا می‌کند؛ می‌توان ذهن او را از درد منحرف کرد', 'دلداری دادن و آرام کردن او دشوار است'] },
+];
+
+const CHIPPS_ITEMS: Item[] = [
+  { key: 'cry', title: 'گریه (Crying)', options: ['ندارد', 'ناله می‌کند', 'جیغ و فریاد می‌کشد'] },
+  { key: 'face', title: 'حالات صورت (Facial expression)', options: ['آرام است / لبخند می‌زند', 'فشردن دهان و لب‌ها', 'چهره درهم کشیده است'] },
+  { key: 'trunk', title: 'وضعیت تنه (Posture of the trunk)', options: ['نرمال', 'تکان می‌خورد', 'سر را بالا می‌کشد (قوس دادن)'] },
+  { key: 'legs', title: 'وضعیت پاها (Posture of the legs)', options: ['ریلکس', 'لگد می‌زند', 'منقبض کرده'] },
+  { key: 'rest', title: 'بی‌قراری حرکتی (Motor restlessness)', options: ['ندارد', 'متوسط', 'بی‌قرار'] },
+];
+
+const FiveItemScale: React.FC<{
+  name: 'FLACC' | 'CHIPPS'; subtitle: string; items: Item[]; onAssess: Props['onAssess']; note?: string;
+}> = ({ name, subtitle, items, onAssess, note }) => {
+  const [scores, setScores] = useState<Record<string, number>>(Object.fromEntries(items.map(i => [i.key, 0])));
+  const [touched, setTouched] = useState(false);
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const severity = pediatricSeverity(total);
+
+  useEffect(() => {
+    if (!touched) { onAssess(null); return; }
+    onAssess({
+      score: total, severity, toolUsed: name,
+      interpretation: `${severityLabel[severity]} (${name} = ${total} از ۱۰)`,
+      timestamp: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total, touched]);
+
+  return (
+    <div className="premium-card p-6 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">{name} Scale</h3>
+        <p className="text-[#096067] font-bold">{subtitle}</p>
+        {note && <p className="text-sm font-bold text-rose-700">{note}</p>}
+      </div>
+      {items.map(it => (
+        <AssessmentRow key={it.key} title={it.title}
+          options={it.options.map((label, v) => ({ label, value: v }))}
+          currentValue={scores[it.key]}
+          onSelect={(v) => { setScores(s => ({ ...s, [it.key]: v })); setTouched(true); }} />
+      ))}
+      <Banner title={`مجموع امتیاز ${name}`} score={total} severity={severity} extra="۰ آرام • ۱–۳ خفیف • ۴–۶ متوسط • ۷–۱۰ شدید" />
+      {!touched && <p className="text-center text-xs font-bold text-[#855f20]">برای نمایش پلن درمانی، حداقل یک گزینه را انتخاب کنید.</p>}
+    </div>
+  );
+};
+
+/* ------------------ شبکهٔ چهره‌ها (مشترک) ------------------ */
+
+const FaceGrid: React.FC<{ value: number | null; onPick: (n: number) => void }> = ({ value, onPick }) => (
+  <>
+    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+      {WONG_BAKER_FACES.map(f => (
+        <button key={f.value} onClick={() => onPick(f.value)}
+          className={`p-3 rounded-3xl border-4 flex flex-col items-center gap-1 cursor-pointer transition-all bg-white ${value === f.value ? 'border-[#096067] -translate-y-1 shadow-xl' : 'border-[#e8e0d0] hover:border-[#c69d5b]'}`}>
+          <img src={f.img} alt={f.fa} className="w-full max-w-[120px] aspect-square object-contain" />
+          <span className="text-3xl font-black text-[#062a2e]">{f.value}</span>
+          <span className="text-xs font-black text-[#475569] text-center leading-tight">{f.fa}</span>
+          <span className="text-[10px] text-[#64748b] font-bold text-center" dir="ltr">{f.en}</span>
         </button>
       ))}
     </div>
+    <p className="text-[11px] text-[#64748b] font-bold text-center" dir="ltr">
+      Wong-Baker FACES® Pain Rating Scale © Wong-Baker FACES Foundation (www.WongBakerFACES.org). Used with permission — verify licence before wider distribution.
+    </p>
+  </>
+);
+
+/* ------------------ Wong-Baker با تصاویر ------------------ */
+
+const WongBaker: React.FC<{ onAssess: Props['onAssess'] }> = ({ onAssess }) => {
+  const [value, setValue] = useState<number | null>(null);
+  useEffect(() => {
+    if (value === null) { onAssess(null); return; }
+    const severity = wongBakerSeverity(value);
+    onAssess({
+      score: value, severity, toolUsed: 'WONG_BAKER',
+      interpretation: `${severityLabel[severity]} (Wong-Baker = ${value})`,
+      timestamp: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const severity = value === null ? null : wongBakerSeverity(value);
+
+  return (
+    <div className="premium-card p-6 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">مقیاس چهره‌ای Wong-Baker FACES®</h3>
+        <p className="text-[#096067] font-bold">برای کودکان ۳ تا ۷ سال که ممکن است قادر به استفاده از مقیاس عددی نباشند.</p>
+        <p className="text-[#475569] font-bold text-sm">تصاویر چهره‌ها را به کودک نشان دهید و از او بخواهید چهره‌ای را انتخاب کند که احساس او را توصیف می‌کند.</p>
+      </div>
+      <FaceGrid value={value} onPick={setValue} />
+      {severity && value !== null && (
+        <Banner title="نتیجهٔ Wong-Baker" score={value} severity={severity} extra="۱–۳ خفیف • ۴–۶ متوسط • ۷–۹ شدید • ۱۰ بسیار شدید" />
+      )}
+    </div>
+  );
+};
+
+/* ------------------ NRS + چهره‌ها ------------------ */
+
+const NRS: React.FC<{ onAssess: Props['onAssess'] }> = ({ onAssess }) => {
+  const [mode, setMode] = useState<'numeric' | 'faces'>('numeric');
+  const [value, setValue] = useState<number | null>(null);
+  useEffect(() => {
+    if (value === null) { onAssess(null); return; }
+    // طبق ابلاغیه کودکان: ۱–۳ خفیف، ۴–۶ متوسط، ۷–۱۰ شدید (چهره‌ها: ۷–۹ شدید، ۱۰ بسیار شدید)
+    const severity = mode === 'faces' ? wongBakerSeverity(value) : pediatricSeverity(value);
+    onAssess({
+      score: value, severity, toolUsed: mode === 'faces' ? 'WONG_BAKER' : 'NRS',
+      interpretation: `${severityLabel[severity]} (${mode === 'faces' ? 'مقیاس چهره‌ای' : 'NRS'} = ${value})`,
+      timestamp: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, mode]);
+  const changeMode = (m: 'numeric' | 'faces') => { setMode(m); setValue(null); };
+  const severity = value === null ? null : (mode === 'faces' ? wongBakerSeverity(value) : pediatricSeverity(value));
+  return (
+    <div className="premium-card p-4 sm:p-10 space-y-8">
+      <div className="text-center space-y-2">
+        <h3 className="text-2xl font-black text-[#062a2e]">مقیاس عددی درد (NRS) یا چهره‌ای</h3>
+        <p className="text-[#096067] font-bold">از حدود ۷ سالگی به بعد، برای کودکانی که می‌توانند درد خود را با عدد توصیف کنند. اگر کودک ترجیح می‌دهد، می‌تواند از چهره‌ها استفاده کند.</p>
+      </div>
+      <div className="flex gap-2 p-1.5 bg-[#ede6d8] rounded-2xl max-w-md mx-auto">
+        {([['numeric', '🔢 مقیاس عددی'], ['faces', '🙂 مقیاس چهره‌ای']] as const).map(([k, label]) => (
+          <button key={k} onClick={() => changeMode(k)}
+            className={`flex-1 py-3 rounded-xl text-sm font-black cursor-pointer transition-all ${mode === k ? 'bg-[#096067] text-white shadow' : 'text-[#062a2e]'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {mode === 'numeric' ? (
+        <>
+          <p className="text-center text-[#475569] font-bold text-sm">خطی نشان دهید که یک سر آن «بدون درد» و سر دیگر «بیشترین درد» است؛ از کودک بخواهید نقطه‌ای روی آن مشخص کند.</p>
+          <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
+            {Array.from({ length: 11 }, (_, i) => (
+              <button key={i} onClick={() => setValue(i)}
+                className={`py-4 rounded-2xl text-xl font-black border-2 cursor-pointer transition-all ${value === i ? 'bg-[#096067] text-white border-[#c69d5b] -translate-y-1 shadow-lg' : 'bg-white border-[#d8cfbe] text-[#062a2e] hover:border-[#096067]'}`}>
+                {i}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-center text-[#475569] font-bold text-sm">چهره‌ای را که بیشتر شبیه احساس کودک است انتخاب کنید.</p>
+          <FaceGrid value={value} onPick={setValue} />
+        </>
+      )}
+      {severity && value !== null && (
+        <Banner title={mode === 'faces' ? 'نتیجهٔ مقیاس چهره‌ای' : 'نتیجهٔ NRS'} score={value} severity={severity}
+          extra={mode === 'faces' ? '۱–۳ خفیف • ۴–۶ متوسط • ۷–۹ شدید • ۱۰ بسیار شدید' : '۱–۳ خفیف • ۴–۶ متوسط • ۷–۱۰ شدید'} />
+      )}
+    </div>
+  );
+};
+
+/* ------------------ مراجع: پروسیجرها و داروها ------------------ */
+
+const ProceduresTab: React.FC = () => (
+  <div className="premium-card p-6 sm:p-10 space-y-6">
+    <h3 className="text-2xl font-black text-[#062a2e] text-center">پروسیجرهای شایع بخش و مدیریت درد</h3>
+    <div className="space-y-4">
+      {PEDIATRIC_PROCEDURES.map((p, i) => (
+        <div key={i} className="p-5 rounded-2xl bg-white border-2 border-[#d8cfbe] space-y-3">
+          <p className="font-black text-[#062a2e]">{p.name}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-bold leading-relaxed">
+            <div className="p-3 rounded-xl bg-sky-50 border border-sky-200"><span className="block text-sky-800 text-xs font-black mb-1">شیرخواران و کودکان کوچک‌تر از ۲ سال</span>{p.under2}</div>
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200"><span className="block text-amber-800 text-xs font-black mb-1">شیرخواران و کودکان بزرگ‌تر از ۲ سال</span>{p.over2}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p className="text-xs font-bold text-[#475569]">منبع: جدول ۳ ابلاغیهٔ «مدیریت درد شیرخواران و کودکان بستری». دوز و تجویز دارو فقط با دستور پزشک.</p>
   </div>
 );
+
+const DrugsTab: React.FC = () => (
+  <div className="premium-card p-6 sm:p-10 space-y-6">
+    <h3 className="text-2xl font-black text-[#062a2e] text-center">داروهای شایع مورد مصرف در درمان درد کودکان</h3>
+    <div className="space-y-3">
+      {PEDIATRIC_DRUGS.map((d, i) => (
+        <div key={i} className="p-5 rounded-2xl bg-white border-2 border-[#d8cfbe] grid grid-cols-1 md:grid-cols-4 gap-3 text-sm font-bold leading-relaxed">
+          <div><span className="block text-xs text-[#855f20] font-black">{d.cls}</span><span className="text-lg font-black text-[#096067]">{d.name}</span></div>
+          <div className="md:col-span-2"><span className="block text-xs text-[#855f20] font-black">مکانیسم و دوز</span>{d.dose}</div>
+          <div><span className="block text-xs text-rose-700 font-black">عوارض جانبی</span>{d.adverse}</div>
+        </div>
+      ))}
+    </div>
+    <div className="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-sm font-bold leading-relaxed space-y-2">
+      <p>• استامینوفن وریدی: برای تسکین درد پس از جراحی باید مداوم و با فواصل منظم در ۷۲ ساعت اول تجویز شود، حتی اگر نمرهٔ درد پایین باشد.</p>
+      <p>• NSAIDs به علت خونریزی گوارشی، نارسایی کلیه، دهیدراتاسیون و مشکلات انعقادی با احتیاط؛ در شیرخواران زیر ۶ ماه ممنوعیت مطلق.</p>
+      <p>• فنتانیل: رقیق‌سازی طبق دستورالعمل کارخانه (ویال در ۱۰ cc حلال → غلظت ۱ mcg/cc، سرعت ۱ mcg/min از طریق سه‌راهی)؛ پس از تزریق علائم حیاتی و SpO₂ پایش شود.</p>
+      <p>• کلونیدین: وقتی درد با مورفین و استامینوفن تسکین نیافت، هر ۴–۶ ساعت به‌صورت بولوس.</p>
+      <p>• میدازولام به علت اثر منفی بر رشد و تکامل مغز محدود شود. در نبود کرم EMLA می‌توان از پماد لیدوکائین با پوشش پلاستیکی، نیم تا یک ساعت قبل از پروسیجر استفاده کرد.</p>
+    </div>
+  </div>
+);
+
+/* ------------------ کامپوننت اصلی ------------------ */
+
+const PediatricAssessment: React.FC<Props> = ({ ageGroup, onAssess }) => {
+  const [tab, setTab] = useState<'assess' | 'procedures' | 'drugs'>('assess');
+
+  const renderScale = () => {
+    switch (ageGroup) {
+      case PediatricAgeGroup.NON_VERBAL:
+        return <FiveItemScale name="FLACC" items={FLACC_ITEMS} onAssess={onAssess}
+          subtitle="کودک فاقد کلام: اینتوبه، CP یا کوچک‌تر از ۳ سال؛ FLACC در تمام گروه‌های سنی فاقد کلام استفاده می‌شود." />;
+      case PediatricAgeGroup.INFANT_TODDLER:
+        return <FiveItemScale name="FLACC" items={FLACC_ITEMS} onAssess={onAssess}
+          subtitle="از پایان یک ماهگی تا حدود ۴ سال، و کودکان بزرگ‌تر بستری در PICU که قادر به صحبت نیستند."
+          note="در کودک غیرهوشیار، مقیاس‌های مشاهده‌ای رفتاری و شاخص‌های فیزیولوژیک اهمیت بیشتری دارند." />;
+      case PediatricAgeGroup.PRE_SCHOOL:
+        return <WongBaker onAssess={onAssess} />;
+      case PediatricAgeGroup.SCHOOL_ADOLESCENT:
+        return <NRS onAssess={onAssess} />;
+      case PediatricAgeGroup.POST_OP:
+        return <FiveItemScale name="CHIPPS" items={CHIPPS_ITEMS} onAssess={onAssess}
+          subtitle="Children's and Infants' Postoperative Pain Scale — درد حاد پس از جراحی در شیرخواران و کودکان تا ۷ سال." />;
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2 p-1.5 bg-[#ede6d8] rounded-2xl max-w-xl mx-auto">
+        {([['assess', '📋 ارزیابی درد'], ['procedures', '🩺 پروسیجرها'], ['drugs', '💊 داروها']] as const).map(([k, label]) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={`flex-1 py-3 rounded-xl text-sm font-black cursor-pointer transition-all ${tab === k ? 'bg-[#096067] text-white shadow' : 'text-[#062a2e]'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {/* ابزار ارزیابی همیشه mount می‌ماند تا نمره با عوض‌کردن تب پاک نشود */}
+      <div className={tab === 'assess' ? '' : 'hidden'}>{renderScale()}</div>
+      {tab === 'procedures' && <ProceduresTab />}
+      {tab === 'drugs' && <DrugsTab />}
+    </div>
+  );
+};
 
 export default PediatricAssessment;
